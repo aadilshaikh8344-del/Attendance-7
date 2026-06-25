@@ -1,0 +1,3243 @@
+﻿<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#4f46e5">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>CR Attendance Pro</title>
+<style>
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  font-size:15px;line-height:1.5;color:var(--text);background:var(--bg);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  padding-top:env(safe-area-inset-top);
+  transition: background 0.3s ease, color 0.3s ease;
+}
+input,select,textarea,button{font:inherit;color:inherit;outline:none;border:none;background:none}
+button{cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+input,select,textarea{font-size:16px} /* prevent iOS zoom */
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+
+/* ============================================================
+   CSS VARIABLES — LIGHT THEME
+   ============================================================ */
+:root{
+  --bg:#F3F4F6;--card:#FFFFFF;--card-alt:#F9FAFB;--text:#111827;--muted:#6B7280;
+  --primary:#4F46E5;--primary-light:#6366F1;--primary-bg:#EEF2FF;
+  --green:#10B981;--green-bg:#ECFDF5;--green-dark:#059669;
+  --red:#EF4444;--red-bg:#FEF2F2;--red-dark:#DC2626;
+  --amber:#F59E0B;--amber-bg:#FFFBEB;
+  --border:#E5E7EB;--border-strong:#D1D5DB;
+  --shadow:0 4px 6px -1px rgba(0,0,0,0.05), 0 2px 4px -1px rgba(0,0,0,0.03);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -2px rgba(0,0,0,0.04);
+  --shadow-glow:0 0 0 4px rgba(79, 70, 229, 0.1);
+  --radius-sm:8px;--radius:12px;--radius-lg:16px;--radius-xl:20px;
+  --header-h:56px;--nav-h:64px;
+  --tab-active:#4F46E5;
+}
+
+
+/* ============================================================
+   DARK THEME
+   ============================================================ */
+[data-theme="dark"]{
+  --bg:#0F172A;--card:#1E293B;--card-alt:#334155;--text:#F1F5F9;--muted:#94A3B8;
+  --primary:#6366F1;--primary-light:#818CF8;--primary-bg:#1E1B4B;
+  --green:#22C55E;--green-bg:#14532D;--green-dark:#16A34A;
+  --red:#EF4444;--red-bg:#7F1D1D;--red-dark:#F87171;
+  --amber:#F59E0B;--amber-bg:#78350F;
+  --border:#334155;--border-strong:#475569;
+  --shadow:0 4px 6px -1px rgba(0,0,0,0.3);
+  --shadow-lg:0 10px 15px -3px rgba(0,0,0,0.4);
+  --shadow-glow:0 0 0 4px rgba(99, 102, 241, 0.2);
+  --tab-active:#818CF8;
+}
+
+
+/* ============================================================
+   APP LAYOUT
+   ============================================================ */
+#app{max-width:600px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;position:relative}
+
+
+.app-header{
+  height:var(--header-h);background:rgba(255,255,255,0.8);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border);
+  display:flex;align-items:center;padding:0 16px;gap:12px;position:sticky;top:0;z-index:100;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+[data-theme="dark"] .app-header{background:rgba(15,23,42,0.8)}
+.app-header .logo{font-size:18px;font-weight:800;color:var(--primary);white-space:nowrap;letter-spacing:-0.5px}
+.app-header .spacer{flex:1}
+.app-header .date-badge{font-size:12px;color:var(--muted);font-weight:700;white-space:nowrap;background:var(--card-alt);padding:4px 8px;border-radius:6px}
+.icon-btn{
+  width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;
+  font-size:18px;background:var(--card-alt);border:1px solid var(--border);transition:.2s;color:var(--text);
+}
+.icon-btn:active{transform:scale(.92)}
+
+
+.app-main{flex:1;padding-bottom:calc(var(--nav-h) + 16px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+
+
+.bottom-nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:600px;
+  height:calc(var(--nav-h) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
+  background:rgba(255,255,255,0.9);backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);display:flex;z-index:100;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+[data-theme="dark"] .bottom-nav{background:rgba(15,23,42,0.9)}
+.nav-btn{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  color:var(--muted);font-size:11px;font-weight:600;transition:.2s;position:relative;
+}
+.nav-btn svg{width:22px;height:22px;stroke-width:2.2}
+.nav-btn.active{color:var(--tab-active)}
+.nav-btn.active::before{
+  content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:32px;height:3px;border-radius:0 0 4px 4px;background:var(--tab-active);
+}
+
+
+/* ============================================================
+   VIEWS
+   ============================================================ */
+.view{display:none;padding:16px;animation:fadeIn .3s ease}
+.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+
+/* ============================================================
+   CARDS
+   ============================================================ */
+.card{
+  background:var(--card);border-radius:var(--radius-lg);padding:16px;margin-bottom:12px;
+  box-shadow:var(--shadow);border:1px solid var(--border);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+.card-title{font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.card-title .action{font-size:12px;color:var(--primary);text-transform:none;font-weight:700}
+
+
+/* ============================================================
+   HOME VIEW
+   ============================================================ */
+.date-display{text-align:center;margin-bottom:16px}
+.date-display .date{font-size:28px;font-weight:800;color:var(--text);font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.date-display .day{font-size:14px;color:var(--muted);font-weight:700;margin-top:2px;text-transform:uppercase;letter-spacing:1px}
+
+
+.lecture-card{
+  background:linear-gradient(135deg,var(--primary),var(--primary-light));
+  border-radius:var(--radius-xl);padding:20px;color:#fff;margin-bottom:16px;position:relative;overflow:hidden;
+  box-shadow:0 10px 20px -5px rgba(79, 70, 229, 0.3);
+}
+.lecture-card::after{content:'';position:absolute;top:-30px;right:-30px;width:140px;height:140px;background:rgba(255,255,255,.1);border-radius:50%}
+.lecture-card::before{content:'';position:absolute;bottom:-40px;left:-20px;width:100px;height:100px;background:rgba(255,255,255,.05);border-radius:50%}
+.lecture-card .label{font-size:11px;text-transform:uppercase;letter-spacing:1px;opacity:.9;font-weight:700;position:relative;z-index:1}
+.lecture-card .subject{font-size:22px;font-weight:800;margin:4px 0 8px;position:relative;z-index:1}
+.lecture-card .details{display:flex;flex-wrap:wrap;gap:8px 16px;font-size:13px;font-weight:600;position:relative;z-index:1}
+.lecture-card .badge{display:inline-flex;align-items:center;gap:4px;background:rgba(255,255,255,.2);padding:4px 10px;border-radius:20px;font-size:12px;font-weight:700;margin-top:8px;backdrop-filter:blur(4px);position:relative;z-index:1}
+
+
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.summary-tile{background:var(--card);border-radius:var(--radius-lg);padding:14px;text-align:center;border:1px solid var(--border);box-shadow:var(--shadow);transition:.2s}
+.summary-tile:active{transform:scale(.98)}
+.summary-tile .num{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.summary-tile .lbl{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:2px;letter-spacing:.5px}
+.summary-tile.present .num{color:var(--green)}
+.summary-tile.absent .num{color:var(--red)}
+.summary-tile.percent .num{color:var(--primary)}
+.summary-tile.lectures .num{color:var(--text)}
+
+
+.lecture-schedule{display:flex;flex-direction:column;gap:8px}
+.schedule-item{
+  display:flex;align-items:center;gap:12px;padding:12px;border-radius:var(--radius);
+  background:var(--card-alt);border:1px solid var(--border);transition:.2s;
+}
+.schedule-item.current{border:2px solid var(--primary);background:var(--primary-bg);box-shadow:var(--shadow-glow)}
+.schedule-item.completed{opacity:.6}
+.schedule-item .time{font-size:12px;font-weight:800;color:var(--muted);min-width:80px;font-variant-numeric:tabular-nums;text-align:center}
+.schedule-item .info{flex:1;min-width:0}
+.schedule-item .subj{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.schedule-item .teacher{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.schedule-item .status{font-size:11px;font-weight:800;padding:4px 8px;border-radius:8px;white-space:nowrap}
+.status.completed{background:var(--green-bg);color:var(--green-dark)}
+.status.pending{background:var(--amber-bg);color:var(--amber)}
+.status.current{background:var(--primary);color:#fff}
+
+
+/* ============================================================
+   ATTENDANCE VIEW
+   ============================================================ */
+.att-form{display:flex;flex-direction:column;gap:10px;margin-bottom:0}
+.form-row{display:flex;gap:8px}
+.form-field{flex:1;display:flex;flex-direction:column;gap:4px}
+.form-field label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px}
+.form-field input,.form-field select{
+  background:var(--card-alt);border:1px solid var(--border);border-radius:var(--radius);
+  padding:10px 12px;font-size:14px;font-weight:600;transition:.2s;width:100%;color:var(--text);
+}
+.form-field input:focus,.form-field select:focus{border-color:var(--primary);box-shadow:var(--shadow-glow);background:var(--card)}
+.form-field input::placeholder{color:var(--muted);font-weight:400}
+
+
+.topic-wrapper{position:relative}
+.topic-suggestions{
+  position:absolute;top:100%;left:0;right:0;background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);box-shadow:var(--shadow-lg);z-index:50;display:none;max-height:180px;overflow-y:auto;margin-top:2px;
+}
+.topic-suggestions .sug{padding:10px 12px;font-size:14px;font-weight:600;cursor:pointer;border-bottom:1px solid var(--border)}
+.topic-suggestions .sug:last-child{border-bottom:none}
+.topic-suggestions .sug:active{background:var(--card-alt)}
+
+
+/* Multi-select Teacher Chips */
+.teacher-chips-container {
+  display: flex; flex-wrap: wrap; gap: 8px; padding: 10px;
+  border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--card-alt); min-height: 48px; transition: .2s;
+}
+.teacher-chips-container:focus-within {
+  border-color: var(--primary); box-shadow: var(--shadow-glow); background: var(--card);
+}
+.teacher-chip {
+  padding: 6px 12px; border-radius: 20px; font-size: 13px; font-weight: 700;
+  border: 1px solid var(--border); background: var(--card); color: var(--muted);
+  cursor: pointer; transition: .2s; user-select: none;
+}
+.teacher-chip.active {
+  background: var(--primary); color: #fff; border-color: var(--primary);
+  box-shadow: 0 2px 4px rgba(79, 70, 229, 0.3);
+}
+.teacher-chip:active { transform: scale(0.95); }
+
+
+.existing-records{margin-top:12px;border-top:1px solid var(--border);padding-top:12px}
+.er-label{font-size:11px;font-weight:800;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.er-item{
+  display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--radius);
+  background:var(--card-alt);border:1px solid var(--border);margin-bottom:6px;transition:.2s;
+}
+.er-item.active{border-color:var(--primary);background:var(--primary-bg)}
+.er-item .er-info{flex:1;min-width:0}
+.er-item .er-subject{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.er-item .er-details{font-size:12px;color:var(--muted);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.er-item .er-count{font-size:14px;font-weight:800;color:var(--primary);background:var(--card);padding:4px 8px;border-radius:6px;border:1px solid var(--border)}
+
+
+.attendance-toolbar{
+  display:flex;align-items:center;gap:8px;margin-bottom:12px;background:var(--card);
+  border-radius:var(--radius-lg);padding:8px;border:1px solid var(--border);box-shadow:var(--shadow);
+}
+.mode-toggle{display:flex;background:var(--card-alt);border-radius:var(--radius);padding:3px;flex-shrink:0}
+.mode-toggle button{padding:6px 14px;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted);transition:.2s;display:flex;align-items:center;gap:4px}
+.mode-toggle button.active{background:var(--card);color:var(--primary);box-shadow:var(--shadow)}
+.mode-toggle button svg{width:16px;height:16px}
+.search-box{flex:1;position:relative}
+.search-box input{
+  width:100%;background:var(--card-alt);border:1px solid var(--border);border-radius:var(--radius);
+  padding:8px 12px 8px 34px;font-size:14px;font-weight:600;color:var(--text);
+}
+.search-box input:focus{border-color:var(--primary);box-shadow:var(--shadow-glow);background:var(--card)}
+.search-box .search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--muted)}
+
+
+/* Student List */
+.student-container.list-mode{display:flex;flex-direction:column;gap:6px;min-height:300px}
+.student-container.grid-mode{display:grid;grid-template-columns:repeat(auto-fill, minmax(52px, 1fr));gap:8px;min-height:300px}
+
+
+.att-item{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--radius);
+  background:var(--card);border:1px solid var(--border);transition:background .15s,border-color .15s, transform .1s;
+  user-select:none;cursor:pointer;
+}
+.att-item:active{transform:scale(.98)}
+.att-item .roll{font-size:14px;font-weight:800;color:var(--muted);min-width:32px;text-align:center;font-variant-numeric:tabular-nums;background:var(--card-alt);padding:4px 6px;border-radius:6px;transition:.15s}
+.att-item .name{flex:1;font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.att-item .check{font-size:18px;color:var(--green);opacity:0;transition:.15s;font-weight:700}
+.att-item.present{background:var(--green-bg);border-color:var(--green);color:var(--green-dark)}
+.att-item.present .roll{background:var(--green);color:#fff}
+.att-item.present .check{opacity:1}
+
+
+/* Grid Items */
+.grid-mode .att-item{
+  flex-direction:column;padding:0;aspect-ratio:1;justify-content:center;align-items:center;
+  border:2px solid var(--border);font-size:16px;font-weight:800;border-radius:12px;
+}
+.grid-mode .att-item .roll{background:none;padding:0;min-width:0;font-size:16px;color:var(--text)}
+.grid-mode .att-item .name{display:none}
+.grid-mode .att-item .check{display:none}
+.grid-mode .att-item.present{border-color:var(--green);background:var(--green);color:#fff}
+.grid-mode .att-item.present .roll{color:#fff}
+
+
+.attendance-footer{
+  position:sticky;bottom:0;background:rgba(255,255,255,0.95);backdrop-filter:blur(12px);
+  border-top:1px solid var(--border);
+  padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));z-index:50;
+  display:flex;align-items:center;gap:8px;box-shadow:0 -4px 12px rgba(0,0,0,0.05);
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+[data-theme="dark"] .attendance-footer{background:rgba(15,23,42,0.95)}
+.count-badge{display:flex;flex-direction:column;align-items:center;min-width:60px}
+.count-badge .num{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1;letter-spacing:-1px}
+.count-badge .lbl{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:2px}
+.count-badge.present .num{color:var(--green)}
+.count-badge.absent .num{color:var(--red)}
+.footer-actions{flex:1;display:flex;gap:6px;justify-content:flex-end}
+.btn-sm{padding:8px 12px;border-radius:10px;font-size:12px;font-weight:700;transition:.2s;display:flex;align-items:center;gap:4px}
+.btn-sm svg{width:14px;height:14px}
+.btn-secondary{background:var(--card-alt);color:var(--text);border:1px solid var(--border)}
+.btn-danger{background:var(--red-bg);color:var(--red-dark);border:1px solid var(--red)}
+.btn-primary{background:var(--primary);color:#fff}
+.btn-success{background:var(--green);color:#fff}
+.btn-sm:active{transform:scale(.95)}
+
+
+.audit-info{margin-top:8px;font-size:11px;color:var(--muted);font-weight:600;display:flex;gap:12px;justify-content:center}
+.audit-info span{display:flex;align-items:center;gap:4px}
+.audit-info svg{width:12px;height:12px}
+
+
+/* ============================================================
+   REPORTS VIEW
+   ============================================================ */
+.report-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+.report-tab{padding:8px 14px;border-radius:20px;font-size:13px;font-weight:700;white-space:nowrap;background:var(--card);border:1px solid var(--border);color:var(--muted);transition:.2s}
+.report-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 10px rgba(79,70,229,0.3)}
+
+
+.report-panel{display:none}
+.report-panel.active{display:block;animation:fadeIn .3s}
+
+
+.stat-row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border)}
+.stat-row:last-child{border-bottom:none}
+.stat-row .lbl{font-size:14px;font-weight:600;color:var(--muted)}
+.stat-row .val{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.stat-row .val.green{color:var(--green)}
+.stat-row .val.red{color:var(--red)}
+
+
+.bar-chart{display:flex;flex-direction:column;gap:10px}
+.bar-item{display:flex;align-items:center;gap:8px}
+.bar-item .bar-label{flex:0 0 100px;font-size:12px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-item .bar-track{flex:1;height:24px;background:var(--card-alt);border-radius:8px;overflow:hidden;position:relative}
+.bar-item .bar-fill{height:100%;border-radius:8px;transition:width .4s ease;background:var(--primary);display:flex;align-items:center;justify-content:flex-end;padding-right:6px}
+.bar-item .bar-fill.green{background:var(--green)}
+.bar-item .bar-fill.amber{background:var(--amber)}
+.bar-item .bar-fill.red{background:var(--red)}
+.bar-item .bar-val{font-size:11px;font-weight:800;color:#fff}
+
+
+.chart-container{background:var(--card-alt);border-radius:var(--radius);padding:12px;margin-top:8px}
+.chart-container svg{width:100%;height:auto;display:block}
+
+
+.student-row{
+  display:flex;align-items:center;gap:10px;padding:12px;border-radius:var(--radius);
+  background:var(--card);border:1px solid var(--border);margin-bottom:6px;transition:.2s;cursor:pointer;
+}
+.student-row:active{transform:scale(.98)}
+.student-row .sr-roll{font-size:13px;font-weight:800;color:var(--muted);min-width:32px;text-align:center;background:var(--card-alt);padding:4px 6px;border-radius:6px;font-variant-numeric:tabular-nums}
+.student-row .sr-name{flex:1;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.student-row .sr-pct{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums}
+.student-row .sr-pct.good{color:var(--green)}
+.student-row .sr-pct.warn{color:var(--red)}
+.student-row .sr-batch{font-size:10px;font-weight:800;color:var(--muted);background:var(--card-alt);padding:4px 6px;border-radius:6px}
+.student-row.warning{border-left:4px solid var(--red)}
+
+
+/* ============================================================
+   SETUP VIEW
+   ============================================================ */
+.setup-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px}
+.setup-tab{padding:8px 14px;border-radius:20px;font-size:13px;font-weight:700;white-space:nowrap;background:var(--card);border:1px solid var(--border);color:var(--muted);transition:.2s}
+.setup-tab.active{background:var(--primary);color:#fff;border-color:var(--primary);box-shadow:0 4px 10px rgba(79,70,229,0.3)}
+
+
+.setup-panel{display:none}
+.setup-panel.active{display:block;animation:fadeIn .3s}
+
+
+.setup-item{display:flex;align-items:center;gap:10px;padding:12px;border-radius:var(--radius);background:var(--card);border:1px solid var(--border);margin-bottom:6px}
+.setup-item .si-info{flex:1;min-width:0}
+.setup-item .si-title{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.setup-item .si-sub{font-size:12px;color:var(--muted);font-weight:600;margin-top:2px}
+.setup-item .si-actions{display:flex;gap:4px}
+.setup-item .si-actions button{width:32px;height:32px;border-radius:8px;background:var(--card-alt);border:1px solid var(--border);font-size:14px;display:flex;align-items:center;justify-content:center;color:var(--text)}
+
+
+.timetable-slot{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px}
+.timetable-slot .ts-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.timetable-slot .ts-time{font-size:14px;font-weight:800;color:var(--primary)}
+.timetable-slot .ts-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.timetable-slot .ts-fields .full{grid-column:1/-1}
+
+
+.add-btn{
+  display:flex;align-items:center;justify-content:center;gap:6px;width:100%;padding:14px;
+  border-radius:var(--radius);border:2px dashed var(--border);color:var(--primary);
+  font-size:14px;font-weight:700;transition:.2s;background:transparent;
+}
+.add-btn:active{background:var(--card-alt);transform:scale(.99)}
+
+
+/* ============================================================
+   MODALS
+   ============================================================ */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:none;
+  align-items:flex-end;justify-content:center;animation:fadeIn .2s;backdrop-filter:blur(4px);
+}
+.modal-overlay.active{display:flex}
+.modal{
+  background:var(--card);width:100%;max-width:600px;max-height:85dvh;overflow-y:auto;
+  border-radius:var(--radius-xl) var(--radius-xl) 0 0;padding:20px;padding-bottom:calc(20px + env(safe-area-inset-bottom));
+  animation:slideUp .3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;position:sticky;top:0;background:var(--card);z-index:10;padding-bottom:8px}
+.modal-header h2{font-size:20px;font-weight:800;letter-spacing:-0.5px}
+.modal-close{width:32px;height:32px;border-radius:50%;background:var(--card-alt);font-size:18px;display:flex;align-items:center;justify-content:center;color:var(--text)}
+
+
+.profile-header{text-align:center;margin-bottom:16px}
+.profile-header .ph-roll{font-size:48px;font-weight:900;color:var(--primary);font-variant-numeric:tabular-nums;letter-spacing:-2px}
+.profile-header .ph-name{font-size:18px;font-weight:800;margin-top:4px}
+.profile-header .ph-batch{font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:1px}
+
+
+.profile-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:16px}
+.profile-stat{text-align:center;background:var(--card-alt);border-radius:var(--radius);padding:12px;border:1px solid var(--border)}
+.profile-stat .ps-num{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-1px}
+.profile-stat .ps-lbl{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-top:2px}
+
+
+.calendar{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin:12px 0}
+.calendar .cal-head{text-align:center;font-size:10px;font-weight:800;color:var(--muted);padding:4px 0}
+.calendar .cal-day{text-align:center;font-size:11px;padding:6px 0;border-radius:6px;font-weight:700;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;transition:.2s}
+.calendar .cal-day .cal-num{font-size:12px;font-weight:700}
+.calendar .cal-day .cal-mark{font-size:9px;font-weight:800}
+.calendar .cal-day.present{background:var(--green-bg);color:var(--green-dark)}
+.calendar .cal-day.absent{background:var(--red-bg);color:var(--red-dark)}
+.calendar .cal-day.no-class{opacity:.3}
+.calendar .cal-day.empty{opacity:.1}
+
+
+.prediction-box{border-radius:var(--radius);padding:14px;margin:12px 0;font-weight:600}
+.prediction-box.safe{background:var(--green-bg);color:var(--green-dark);border:1px solid var(--green)}
+.prediction-box.danger{background:var(--red-bg);color:var(--red-dark);border:1px solid var(--red)}
+.prediction-box .pb-title{font-size:14px;font-weight:800;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.prediction-box .pb-detail{font-size:13px}
+
+
+/* Editable History List */
+.history-list { display: flex; flex-direction: column; gap: 6px; }
+.history-item {
+  display: flex; align-items: center; gap: 10px; padding: 10px;
+  border-radius: var(--radius); background: var(--card-alt); border: 1px solid var(--border);
+}
+.history-item .hi-info { flex: 1; min-width: 0; }
+.history-item .hi-subject { font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.history-item .hi-details { font-size: 12px; color: var(--muted); font-weight: 600; }
+.history-toggle {
+  padding: 6px 14px; border-radius: 20px; font-size: 12px; font-weight: 800;
+  min-width: 70px; text-align: center; transition: .2s; color: #fff;
+}
+.history-toggle.present { background: var(--green); }
+.history-toggle.absent { background: var(--red); }
+.history-toggle:active { transform: scale(0.95); }
+
+
+/* ============================================================
+   COPY MODAL
+   ============================================================ */
+.copy-options{display:flex;flex-direction:column;gap:8px;margin:12px 0}
+.copy-opt{
+  padding:14px;border-radius:var(--radius);border:2px solid var(--border);
+  background:var(--card-alt);font-weight:700;text-align:left;transition:.2s;
+}
+.copy-opt.active{border-color:var(--primary);background:var(--primary-bg);box-shadow:var(--shadow-glow)}
+.copy-opt .co-title{font-size:14px;color:var(--text)}
+.copy-opt .co-preview{font-size:12px;color:var(--muted);margin-top:4px;font-weight:400}
+
+
+.copy-preview{
+  background:var(--card-alt);border:1px solid var(--border);border-radius:var(--radius);
+  padding:14px;font-size:13px;white-space:pre-wrap;word-break:break-word;max-height:300px;overflow-y:auto;
+  font-family:'Courier New', monospace;line-height:1.6;color:var(--text);
+}
+
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+#toast{
+  position:fixed;bottom:calc(var(--nav-h) + 20px + env(safe-area-inset-bottom));left:50%;
+  transform:translateX(-50%) translateY(20px);background:var(--text);color:var(--bg);
+  padding:12px 24px;border-radius:24px;font-size:13px;font-weight:700;z-index:2000;
+  opacity:0;transition:.3s cubic-bezier(0.16, 1, 0.3, 1);pointer-events:none;box-shadow:var(--shadow-lg);
+  display:flex;align-items:center;gap:6px;
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.success{background:var(--green);color:#fff}
+#toast.error{background:var(--red);color:#fff}
+
+
+/* ============================================================
+   PRINT
+   ============================================================ */
+#print-area{display:none}
+@media print{
+  body *{visibility:hidden}
+  #print-area,#print-area *{visibility:visible}
+  #print-area{display:block;position:absolute;left:0;top:0;width:100%;padding:20px;color:#000;background:#fff}
+  .print-page{page-break-after:always;margin-bottom:20px}
+  .print-page:last-child{page-break-after:auto}
+  .print-h1{font-size:22px;font-weight:900;margin-bottom:8px}
+  .print-h2{font-size:16px;font-weight:700;margin:16px 0 8px;border-bottom:2px solid #333;padding-bottom:4px}
+  .print-table{width:100%;border-collapse:collapse;font-size:11px}
+  .print-table th,.print-table td{border:1px solid #ccc;padding:4px 6px;text-align:left}
+  .print-table th{background:#f0f0f0;font-weight:700}
+  .print-bar{height:14px;background:#4f46e5;border-radius:3px;display:inline-block;vertical-align:middle}
+  @page{margin:1cm}
+}
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media(min-width:768px){
+  #app{max-width:800px}
+  .summary-grid{grid-template-columns:repeat(4,1fr)}
+  .student-container.grid-mode{grid-template-columns:repeat(10, 1fr)}
+}
+
+
+/* ============================================================
+   UTILITIES
+   ============================================================ */
+.hidden{display:none!important}
+.text-center{text-align:center}
+.text-muted{color:var(--muted)}
+.mt-8{margin-top:8px}
+.mt-16{margin-top:16px}
+.empty-state{text-align:center;padding:40px 20px;color:var(--muted)}
+.empty-state .es-icon{font-size:48px;margin-bottom:8px}
+.empty-state .es-msg{font-size:14px;font-weight:600}
+.warning-badge{display:inline-block;background:var(--red);color:#fff;font-size:10px;font-weight:800;padding:2px 6px;border-radius:6px;margin-left:4px}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HEADER -->
+  <header class="app-header">
+    <span class="logo">CR Attendance Pro</span>
+    <span class="spacer"></span>
+    <span class="date-badge" id="header-date"></span>
+    <button class="icon-btn" id="theme-toggle" aria-label="Toggle theme">
+      <svg id="theme-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+    </button>
+  </header>
+
+
+  <!-- MAIN -->
+  <main class="app-main">
+    <!-- HOME VIEW -->
+    <section id="view-home" class="view active">
+      <div class="date-display">
+        <div class="date" id="home-date"></div>
+        <div class="day" id="home-day"></div>
+      </div>
+      <div id="current-lecture-container"></div>
+      <div class="summary-grid" id="home-summary"></div>
+      <div class="card">
+        <div class="card-title">
+          <span>Today's Schedule</span>
+          <span class="action" id="completed-count"></span>
+        </div>
+        <div class="lecture-schedule" id="home-schedule"></div>
+      </div>
+      <div id="next-lecture-container"></div>
+    </section>
+
+
+    <!-- ATTENDANCE VIEW -->
+    <section id="view-attendance" class="view">
+      <div class="card">
+        <div class="card-title">
+          <span>Attendance Entry</span>
+          <span class="action" id="save-indicator" style="color:var(--green)">Auto-saved</span>
+        </div>
+        <div class="att-form">
+          <div class="form-row">
+            <div class="form-field" style="flex:1">
+              <label>Date</label>
+              <input type="date" id="att-date">
+            </div>
+            <div class="form-field" style="flex:0 0 auto;justify-content:flex-end">
+              <button class="btn-sm btn-primary" id="new-record-btn" style="height:42px;padding:0 16px;">+ New</button>
+            </div>
+          </div>
+          <div id="existing-records-list"></div>
+          <div class="form-row">
+            <div class="form-field" style="flex:1">
+              <label>Subject</label>
+              <select id="att-subject"></select>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Teacher(s) for this lecture</label>
+            <div id="att-teachers-chips" class="teacher-chips-container"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Batch</label>
+              <select id="att-batch">
+                <option value="Both">Entire Class</option>
+                <option value="A">Batch A Only</option>
+                <option value="B">Batch B Only</option>
+                <option value="None">No Batch Only</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Class Type</label>
+              <select id="att-type">
+                <option value="Theory">Theory</option>
+                <option value="Practical">Practical</option>
+                <option value="Clinical">Clinical</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-field">
+              <label>Time Slot</label>
+              <input type="text" id="att-time" placeholder="e.g., 9:00–11:00">
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Topic Covered</label>
+            <div class="topic-wrapper">
+              <input type="text" id="att-topic" placeholder="Start typing topic..." autocomplete="off">
+              <div class="topic-suggestions" id="topic-suggestions"></div>
+            </div>
+          </div>
+          <div class="form-field">
+            <label>Remarks (Optional)</label>
+            <input type="text" id="att-remarks" placeholder="Any special notes...">
+          </div>
+          <div class="audit-info hidden" id="audit-info">
+            <span id="audit-created"></span>
+            <span id="audit-modified"></span>
+          </div>
+        </div>
+      </div>
+
+
+      <div class="attendance-toolbar">
+        <div class="mode-toggle">
+          <button class="active" data-mode="list" id="mode-list-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+            List
+          </button>
+          <button data-mode="grid" id="mode-grid-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+            Grid
+          </button>
+        </div>
+        <div class="search-box">
+          <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="att-search" placeholder="Search roll or name...">
+        </div>
+      </div>
+
+
+      <div class="student-container list-mode" id="student-container"></div>
+
+
+      <div class="attendance-footer">
+        <div class="count-badge present">
+          <span class="num" id="present-count">0</span>
+          <span class="lbl">Present</span>
+        </div>
+        <div class="count-badge absent">
+          <span class="num" id="absent-count">0</span>
+          <span class="lbl">Absent</span>
+        </div>
+        <div class="footer-actions">
+          <button class="btn-sm btn-secondary" id="mark-all-btn">All</button>
+          <button class="btn-sm btn-secondary" id="reset-btn">Reset</button>
+          <button class="btn-sm btn-danger hidden" id="delete-record-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          </button>
+          <button class="btn-sm btn-success" id="copy-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy
+          </button>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- REPORTS VIEW -->
+    <section id="view-reports" class="view">
+      <div class="report-tabs">
+        <button class="report-tab active" data-report="overview">Overview</button>
+        <button class="report-tab" data-report="students">Students</button>
+        <button class="report-tab" data-report="subjects">Subjects</button>
+        <button class="report-tab" data-report="batch">Batch</button>
+        <button class="report-tab" data-report="trend">Trend</button>
+      </div>
+      <div id="report-overview" class="report-panel active"></div>
+      <div id="report-students" class="report-panel"></div>
+      <div id="report-subjects" class="report-panel"></div>
+      <div id="report-batch" class="report-panel"></div>
+      <div id="report-trend" class="report-panel"></div>
+      <button class="btn-sm btn-primary" id="export-pdf-btn" style="width:100%;padding:14px;margin-top:8px;font-size:15px;justify-content:center;gap:8px;">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export PDF Report
+      </button>
+    </section>
+
+
+    <!-- SETUP VIEW -->
+    <section id="view-setup" class="view">
+      <div class="setup-tabs">
+        <button class="setup-tab active" data-setup="timetable">Timetable</button>
+        <button class="setup-tab" data-setup="subjects">Subjects</button>
+        <button class="setup-tab" data-setup="students">Students</button>
+        <button class="setup-tab" data-setup="settings">Settings</button>
+      </div>
+      <div id="setup-timetable" class="setup-panel active"></div>
+      <div id="setup-subjects" class="setup-panel"></div>
+      <div id="setup-students" class="setup-panel"></div>
+      <div id="setup-settings" class="setup-panel"></div>
+    </section>
+  </main>
+
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" data-nav="home">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+      Home
+    </button>
+    <button class="nav-btn" data-nav="attendance">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Attendance
+    </button>
+    <button class="nav-btn" data-nav="reports">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </button>
+    <button class="nav-btn" data-nav="setup">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      Setup
+    </button>
+  </nav>
+</div>
+
+
+<!-- MODAL OVERLAY -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+
+<!-- PRINT AREA -->
+<div id="print-area"></div>
+
+
+<script>
+// ============================================================
+// CONFIGURATION & CONSTANTS
+// ============================================================
+const STORAGE_KEY = 'cr_attendance_pro_v4'; // Version bump for empty start & batch fixes
+const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+
+// ============================================================
+// DATABASE LAYER
+// ============================================================
+let DB = {
+  students: [],
+  subjects: [],
+  timetable: {},
+  attendance: {},
+  recycleBin: [],
+  topics: [],
+  settings: { theme: 'light', className: '3rd BAMS', defaultView: 'list' }
+};
+
+
+function loadDB() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      DB.students = parsed.students || [];
+      DB.subjects = parsed.subjects || [];
+      DB.timetable = parsed.timetable || {};
+      DB.attendance = parsed.attendance || {};
+      DB.recycleBin = parsed.recycleBin || [];
+      DB.topics = parsed.topics || [];
+      DB.settings = parsed.settings || { theme: 'light', className: '3rd BAMS' };
+      
+      // Validate integrity
+      if (!Array.isArray(DB.students) || DB.students.length === 0) seedData();
+      if (!Array.isArray(DB.subjects) || DB.subjects.length === 0) seedData();
+      if (Object.keys(DB.timetable).length === 0) seedTimetable();
+    } else {
+      seedData();
+    }
+  } catch(e) {
+    console.error('DB Load Error:', e);
+    seedData();
+  }
+}
+
+
+function saveDB(silent) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DB));
+    if (!silent) showToast('✓ Saved', 'success');
+  } catch(e) {
+    showToast('Save failed', 'error');
+  }
+}
+
+
+function silentSave() {
+  saveDB(true);
+  const indicator = document.getElementById('save-indicator');
+  if (indicator) {
+    indicator.textContent = '✓ Saved';
+    indicator.style.color = 'var(--green)';
+    clearTimeout(window._saveTimer);
+    window._saveTimer = setTimeout(() => {
+      indicator.textContent = 'Auto-saved';
+      indicator.style.color = 'var(--primary)';
+    }, 2000);
+  }
+}
+
+
+// ============================================================
+// SEED DATA (No Sample Attendance)
+// ============================================================
+function seedData() {
+  DB.students = generateStudents();
+  DB.subjects = generateSubjects();
+  DB.timetable = {};
+  DB.attendance = {}; // Starts empty
+  DB.recycleBin = [];
+  DB.topics = [
+    'Agnimandya Case Discussion','Auto Retractor Practical','Blood Pressure Practical',
+    'History Taking','General Examination','Nadi Pariksha',
+    'Mutra Pariksha','Mala Pariksha','Jihwa Pariksha',
+    'Shalya Instruments','Shalakya Examination','Prasuti Examination',
+    'Kaumarabhritya Growth Assessment','Samhita Recitation','PTSR Case Study'
+  ];
+  DB.settings = { theme: 'light', className: '3rd BAMS', defaultView: 'list' };
+  seedTimetable();
+  saveDB(true);
+}
+
+
+function generateStudents() {
+  const names = [
+    'AGRAWAL AARAV','BHATT ADITI','CHAUHAN ARJUN','DESAI ANANYA',
+    'EDALBAD KARAN','FUJARI SNEHA','GANDHI PRIYA','HEGDE ROHAN',
+    'IYER DIVYA','JAIN KUNAL','KHAN AMAN','LAKHANI POOJA',
+    'MEHTA SIDDHARTH','NAIR ANJALI','OJHA RISHAB','PATEL NIKITA',
+    'QURESHI FAIZAN','RAO SHREYA','SHARMA VIKRAM','TIWARI NISHA',
+    'UPADHYAY GAURAV','VERMA SAKSHI','WAGH KARAN','XAVIER RACHEL',
+    'YADAV PRIYANKA','ZAHEER MOHAMMED','BANSAL TANISH','DESHMUKH AISHWARYA',
+    'IPE ELDHOSE','JOSEPH MARIYA','KOSHY ANNA','MATHEW JOHN',
+    'NELSON DAVID','PRAKASH ELIZABETH','REGI THOMAS','SHERLY ANU',
+    'THOMAS BINU','VARGHESE CIANA','ABRAHAM DENIL','BENNY ELDHO',
+    'CHERIAN FEMINA','DANIEL GIBI','EAPEN HANNA','FELIX JACOB',
+    'GEORGE KEVIN','HANNA LINU','ISSAC MERIN','JOY NIBIN',
+    'KURIAN OMANA','LAL PRINCE','MANI QUINCY','NICHOLAS RENU',
+    'OOMMEN SHILPA','PHILIP TINTO','ROY UMMA','SAM VINU',
+    'THOMAS WILSON','VARUGHESE XAVIER'
+  ];
+  return names.map((name, i) => ({
+    roll: i + 1,
+    name: name,
+    batch: i < 28 ? 'A' : 'B' // Default split, editable later
+  }));
+}
+
+
+function generateSubjects() {
+  return [
+    { id: 's1', name: 'Kayachikitsa', teachers: ['Dr Urvashi','Dr Babu'] },
+    { id: 's2', name: 'Panchakarma', teachers: ['Dr Reshma'] },
+    { id: 's3', name: 'Shalya Tantra', teachers: ['Dr Chirag','Dr Wasim'] },
+    { id: 's4', name: 'Shalakya Tantra', teachers: ['Dr Darshana'] },
+    { id: 's5', name: 'Prasuti Tantra', teachers: ['Dr Sneha'] },
+    { id: 's6', name: 'Kaumarabhritya', teachers: ['Dr Divya'] },
+    { id: 's7', name: 'Samhita', teachers: ['Dr Gowtham'] },
+    { id: 's8', name: 'PTSR', teachers: ['Dr Athulya'] }
+  ];
+}
+
+
+function seedTimetable() {
+  DB.timetable = {
+    'Monday': [
+      { startTime:'9:00',endTime:'11:00',subjectId:'s1',teacher:'Dr Urvashi',type:'Practical',batch:'A' },
+      { startTime:'11:00',endTime:'12:00',subjectId:'s1',teacher:'Dr Urvashi',type:'Theory',batch:'Both' },
+      { startTime:'12:00',endTime:'13:00',subjectId:'s8',teacher:'Dr Athulya',type:'Theory',batch:'Both' },
+      { startTime:'13:30',endTime:'14:30',subjectId:'s6',teacher:'Dr Divya',type:'Theory',batch:'Both' },
+      { startTime:'14:30',endTime:'15:30',subjectId:'s4',teacher:'Dr Darshana',type:'Theory',batch:'Both' },
+      { startTime:'15:30',endTime:'16:30',subjectId:'s7',teacher:'Dr Gowtham',type:'Theory',batch:'Both' }
+    ],
+    'Tuesday': [
+      { startTime:'9:00',endTime:'11:00',subjectId:'s3',teacher:'Dr Chirag',type:'Practical',batch:'B' },
+      { startTime:'11:00',endTime:'12:00',subjectId:'s3',teacher:'Dr Chirag',type:'Theory',batch:'Both' },
+      { startTime:'12:00',endTime:'13:00',subjectId:'s2',teacher:'Dr Reshma',type:'Theory',batch:'Both' },
+      { startTime:'13:30',endTime:'14:30',subjectId:'s5',teacher:'Dr Sneha',type:'Theory',batch:'Both' },
+      { startTime:'14:30',endTime:'15:30',subjectId:'s1',teacher:'Dr Babu',type:'Theory',batch:'Both' },
+      { startTime:'15:30',endTime:'16:30',subjectId:'s7',teacher:'Dr Gowtham',type:'Theory',batch:'Both' }
+    ],
+    'Wednesday': [
+      { startTime:'9:00',endTime:'11:00',subjectId:'s1',teacher:'Dr Urvashi',type:'Practical',batch:'A' },
+      { startTime:'11:00',endTime:'12:00',subjectId:'s2',teacher:'Dr Reshma',type:'Theory',batch:'Both' },
+      { startTime:'12:00',endTime:'13:00',subjectId:'s4',teacher:'Dr Darshana',type:'Theory',batch:'Both' },
+      { startTime:'13:30',endTime:'14:30',subjectId:'s6',teacher:'Dr Divya',type:'Theory',batch:'Both' },
+      { startTime:'14:30',endTime:'15:30',subjectId:'s8',teacher:'Dr Athulya',type:'Theory',batch:'Both' },
+      { startTime:'15:30',endTime:'16:30',subjectId:'s5',teacher:'Dr Sneha',type:'Theory',batch:'Both' }
+    ],
+    'Thursday': [
+      { startTime:'9:00',endTime:'11:00',subjectId:'s3',teacher:'Dr Wasim',type:'Practical',batch:'B' },
+      { startTime:'11:00',endTime:'12:00',subjectId:'s3',teacher:'Dr Chirag',type:'Theory',batch:'Both' },
+      { startTime:'12:00',endTime:'13:00',subjectId:'s1',teacher:'Dr Babu',type:'Theory',batch:'Both' },
+      { startTime:'13:30',endTime:'14:30',subjectId:'s5',teacher:'Dr Sneha',type:'Theory',batch:'Both' },
+      { startTime:'14:30',endTime:'15:30',subjectId:'s4',teacher:'Dr Darshana',type:'Theory',batch:'Both' },
+      { startTime:'15:30',endTime:'16:30',subjectId:'s7',teacher:'Dr Gowtham',type:'Theory',batch:'Both' }
+    ],
+    'Friday': [
+      { startTime:'9:00',endTime:'11:00',subjectId:'s2',teacher:'Dr Reshma',type:'Practical',batch:'A' },
+      { startTime:'11:00',endTime:'12:00',subjectId:'s1',teacher:'Dr Urvashi',type:'Theory',batch:'Both' },
+      { startTime:'12:00',endTime:'13:00',subjectId:'s6',teacher:'Dr Divya',type:'Theory',batch:'Both' },
+      { startTime:'13:30',endTime:'14:30',subjectId:'s8',teacher:'Dr Athulya',type:'Theory',batch:'Both' },
+      { startTime:'14:30',endTime:'15:30',subjectId:'s3',teacher:'Dr Chirag',type:'Theory',batch:'Both' },
+      { startTime:'15:30',endTime:'16:30',subjectId:'s5',teacher:'Dr Sneha',type:'Theory',batch:'Both' }
+    ],
+    'Saturday': [
+      { startTime:'9:00',endTime:'11:00',subjectId:'s4',teacher:'Dr Darshana',type:'Practical',batch:'B' },
+      { startTime:'11:00',endTime:'12:00',subjectId:'s7',teacher:'Dr Gowtham',type:'Theory',batch:'Both' },
+      { startTime:'12:00',endTime:'13:00',subjectId:'s8',teacher:'Dr Athulya',type:'Theory',batch:'Both' }
+    ]
+  };
+}
+
+
+// ============================================================
+// UTILITY FUNCTIONS
+// ============================================================
+function formatDate(d) {
+  const dd = String(d.getDate()).padStart(2,'0');
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const yyyy = d.getFullYear();
+  return dd + '/' + mm + '/' + yyyy;
+}
+
+
+function formatDateISO(d) {
+  const mm = String(d.getMonth()+1).padStart(2,'0');
+  const dd = String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + mm + '-' + dd;
+}
+
+
+function formatDateTime(ts) {
+  const d = new Date(ts);
+  return formatDate(d) + ' ' + d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+}
+
+
+function parseTime(timeStr) {
+  const parts = timeStr.split(':');
+  return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+}
+
+
+function getDayName(date) {
+  return DAYS[date.getDay()];
+}
+
+
+function uid() {
+  return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+}
+
+
+function debounce(fn, delay) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+
+
+function haptic() {
+  if (navigator.vibrate) navigator.vibrate(8);
+}
+
+
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = type || '';
+  t.classList.add('show');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.remove('show'), 2200);
+}
+
+
+// Helper to normalize teachers data (backward compatibility)
+function getTeachersFromRecord(rec) {
+  if (Array.isArray(rec.teachers)) return rec.teachers;
+  if (rec.teacher) return [rec.teacher];
+  return [];
+}
+
+function formatBatchLabel(batch) {
+  if (batch === 'A') return 'Batch A';
+  if (batch === 'B') return 'Batch B';
+  if (batch === 'Both') return 'Both';
+  return 'None';
+}
+
+
+// ============================================================
+// DATA ACCESS FUNCTIONS
+// ============================================================
+function getStudentsForBatch(batch) {
+  if (batch === 'Both') return DB.students.filter(s => s.batch === 'A' || s.batch === 'B');
+  if (batch === 'None') return DB.students.filter(s => s.batch === 'None' || !s.batch);
+  return DB.students.filter(s => s.batch === batch);
+}
+
+
+function getSubject(id) {
+  return DB.subjects.find(s => s.id === id);
+}
+
+
+function getSubjectByName(name) {
+  return DB.subjects.find(s => s.name === name);
+}
+
+
+function getSubjectName(id) {
+  const s = getSubject(id);
+  return s ? s.name : 'Unknown';
+}
+
+
+function getTeachersForSubject(subjectId) {
+  const s = getSubject(subjectId);
+  return s ? s.teachers : [];
+}
+
+
+function getAllAttendanceRecords() {
+  const all = [];
+  Object.values(DB.attendance).forEach(dayRecords => {
+    all.push(...dayRecords);
+  });
+  return all.sort((a,b) => a.date.localeCompare(b.date));
+}
+
+
+function getRecordsForDate(date) {
+  return DB.attendance[date] || [];
+}
+
+
+function findRecordById(id) {
+  for (const date in DB.attendance) {
+    const found = DB.attendance[date].find(r => r.id === id);
+    if (found) return found;
+  }
+  return null;
+}
+
+
+// ============================================================
+// AUTO-DETECTION ENGINE
+// ============================================================
+function detectCurrentLecture(date) {
+  const dayName = getDayName(date);
+  const dayTimetable = DB.timetable[dayName] || [];
+  const nowMinutes = date.getHours() * 60 + date.getMinutes();
+
+
+  for (const slot of dayTimetable) {
+    const start = parseTime(slot.startTime);
+    const end = parseTime(slot.endTime);
+    if (nowMinutes >= start && nowMinutes <= end) {
+      return { ...slot, isCurrent: true };
+    }
+  }
+  return null;
+}
+
+
+function getNextLecture(date) {
+  const dayName = getDayName(date);
+  const dayTimetable = DB.timetable[dayName] || [];
+  const nowMinutes = date.getHours() * 60 + date.getMinutes();
+
+
+  for (const slot of dayTimetable) {
+    const start = parseTime(slot.startTime);
+    if (nowMinutes < start) {
+      return { ...slot, isNext: true };
+    }
+  }
+  return null;
+}
+
+
+function getLectureStatus(slot, dateStr) {
+  const records = getRecordsForDate(dateStr);
+  const hasRecord = records.some(r => r.subjectId === slot.subjectId && r.time === (slot.startTime + '–' + slot.endTime));
+  return hasRecord ? 'completed' : 'pending';
+}
+
+
+// ============================================================
+// APP STATE
+// ============================================================
+const AppState = {
+  currentView: 'home',
+  currentDate: new Date(),
+  attendance: {
+    recordId: null,
+    date: '',
+    subjectId: '',
+    subjectName: '',
+    teachers: [], 
+    topic: '',
+    remarks: '',
+    batch: 'Both',
+    type: 'Theory',
+    time: '',
+    present: [],
+    mode: 'list'
+  },
+  reportTab: 'overview',
+  setupTab: 'timetable',
+  selectedStudentRoll: null
+};
+
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function navigate(view) {
+  if (AppState.currentView === 'attendance' && view !== 'attendance') {
+    saveCurrentAttendance(true);
+  }
+
+
+  AppState.currentView = view;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-' + view).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.toggle('active', b.dataset.nav === view));
+
+
+  if (view === 'home') renderHome();
+  if (view === 'attendance') renderAttendanceView();
+  if (view === 'reports') renderReports();
+  if (view === 'setup') renderSetup();
+  window.scrollTo(0, 0);
+}
+
+
+// ============================================================
+// HOME VIEW
+// ============================================================
+function renderHome() {
+  const now = AppState.currentDate;
+  const dateStr = formatDateISO(now);
+  const dayName = getDayName(now);
+
+
+  document.getElementById('header-date').textContent = formatDate(now);
+  document.getElementById('home-date').textContent = formatDate(now);
+  document.getElementById('home-day').textContent = dayName;
+
+
+  const currentLecture = detectCurrentLecture(now);
+  const container = document.getElementById('current-lecture-container');
+  if (currentLecture) {
+    const subjectName = getSubjectName(currentLecture.subjectId);
+    container.innerHTML = `
+      <div class="lecture-card">
+        <div class="label">Current Lecture</div>
+        <div class="subject">${subjectName}</div>
+        <div class="details">
+          <span>👨‍🏫 ${currentLecture.teacher}</span>
+          <span>📚 ${currentLecture.type}</span>
+        </div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <span class="badge">🕐 ${currentLecture.startTime}–${currentLecture.endTime}</span>
+          <span class="badge">Batch ${currentLecture.batch}</span>
+        </div>
+      </div>`;
+  } else {
+    container.innerHTML = '';
+  }
+
+
+  const records = getRecordsForDate(dateStr);
+  let totalPresent = 0, totalAbsent = 0;
+  records.forEach(r => {
+    const students = getStudentsForBatch(r.batch);
+    totalPresent += r.present.length;
+    totalAbsent += students.length - r.present.length;
+  });
+  const totalMarked = totalPresent + totalAbsent;
+  const pct = totalMarked > 0 ? Math.round((totalPresent / totalMarked) * 100) : 0;
+
+
+  document.getElementById('home-summary').innerHTML = `
+    <div class="summary-tile present"><div class="num">${totalPresent}</div><div class="lbl">Present</div></div>
+    <div class="summary-tile absent"><div class="num">${totalAbsent}</div><div class="lbl">Absent</div></div>
+    <div class="summary-tile percent"><div class="num">${pct}%</div><div class="lbl">Avg</div></div>
+    <div class="summary-tile lectures"><div class="num">${records.length}</div><div class="lbl">Done</div></div>`;
+
+
+  const dayTimetable = DB.timetable[dayName] || [];
+  const completed = dayTimetable.filter(s => getLectureStatus(s, dateStr) === 'completed').length;
+  document.getElementById('completed-count').textContent = `${completed}/${dayTimetable.length} done`;
+
+
+  const scheduleEl = document.getElementById('home-schedule');
+  if (dayTimetable.length === 0) {
+    scheduleEl.innerHTML = '<div class="empty-state"><div class="es-icon">📅</div><div class="es-msg">No lectures scheduled for ' + dayName + '</div></div>';
+  } else {
+    scheduleEl.innerHTML = dayTimetable.map(slot => {
+      const status = getLectureStatus(slot, dateStr);
+      const isCurrent = currentLecture && currentLecture.startTime === slot.startTime && currentLecture.subjectId === slot.subjectId;
+      const cls = isCurrent ? 'current' : (status === 'completed' ? 'completed' : '');
+      const statusBadge = status === 'completed' ? '<span class="status completed">Done</span>' :
+                          isCurrent ? '<span class="status current">Now</span>' :
+                          '<span class="status pending">Pending</span>';
+      return `
+        <div class="schedule-item ${cls}" data-slot='${JSON.stringify(slot)}'>
+          <span class="time">${slot.startTime}<br>${slot.endTime}</span>
+          <div class="info">
+            <div class="subj">${getSubjectName(slot.subjectId)}</div>
+            <div class="teacher">${slot.teacher} • ${slot.type} • ${slot.batch}</div>
+          </div>
+          ${statusBadge}
+        </div>`;
+    }).join('');
+
+
+    scheduleEl.querySelectorAll('.schedule-item').forEach(item => {
+      item.addEventListener('click', () => {
+        const slot = JSON.parse(item.dataset.slot);
+        loadSlotIntoAttendance(slot, dateStr);
+        navigate('attendance');
+      });
+    });
+  }
+
+
+  const nextLecture = getNextLecture(now);
+  const nlContainer = document.getElementById('next-lecture-container');
+  if (nextLecture && !currentLecture) {
+    nlContainer.innerHTML = `
+      <div class="card" style="border-left:4px solid var(--primary)">
+        <div class="card-title"><span>Next Lecture</span></div>
+        <div style="font-size:18px;font-weight:800;color:var(--primary)">${getSubjectName(nextLecture.subjectId)}</div>
+        <div style="font-size:13px;color:var(--muted);font-weight:600;margin-top:4px">🕐 ${nextLecture.startTime}–${nextLecture.endTime} • ${nextLecture.teacher} • Batch ${nextLecture.batch}</div>
+      </div>`;
+  } else {
+    nlContainer.innerHTML = '';
+  }
+}
+
+
+function loadSlotIntoAttendance(slot, dateStr) {
+  clearAttendanceForm();
+  AppState.attendance.date = dateStr;
+  AppState.attendance.subjectId = slot.subjectId;
+  AppState.attendance.subjectName = getSubjectName(slot.subjectId);
+  AppState.attendance.teachers = [slot.teacher]; 
+  AppState.attendance.type = slot.type;
+  AppState.attendance.batch = slot.batch;
+  AppState.attendance.time = slot.startTime + '–' + slot.endTime;
+
+
+  // Check for existing record
+  const existing = DB.attendance[dateStr]?.find(r => r.subjectId === slot.subjectId && r.time === (slot.startTime + '–' + slot.endTime));
+  if (existing) {
+    loadRecordIntoForm(existing);
+  }
+}
+
+
+// ============================================================
+// ATTENDANCE VIEW
+// ============================================================
+function renderAttendanceView() {
+  if (!AppState.attendance.subjectId) {
+    autoDetectLecture();
+  }
+
+
+  document.getElementById('att-date').value = AppState.attendance.date;
+
+
+  const subjectSelect = document.getElementById('att-subject');
+  subjectSelect.innerHTML = DB.subjects.map(s =>
+    `<option value="${s.id}" ${s.id === AppState.attendance.subjectId ? 'selected' : ''}>${s.name}</option>`
+  ).join('');
+
+
+  renderTeacherChips(); 
+
+
+  document.getElementById('att-batch').value = AppState.attendance.batch;
+  document.getElementById('att-type').value = AppState.attendance.type;
+  document.getElementById('att-time').value = AppState.attendance.time;
+  document.getElementById('att-topic').value = AppState.attendance.topic;
+  document.getElementById('att-remarks').value = AppState.attendance.remarks || '';
+
+
+  document.querySelectorAll('.mode-toggle button').forEach(b => {
+    b.classList.toggle('active', b.dataset.mode === AppState.attendance.mode);
+  });
+
+
+  renderExistingRecords();
+  renderStudents();
+  updateCounts();
+  updateAuditInfo();
+  
+  if (AppState.attendance.recordId) {
+    document.getElementById('delete-record-btn').classList.remove('hidden');
+  } else {
+    document.getElementById('delete-record-btn').classList.add('hidden');
+  }
+}
+
+
+function autoDetectLecture() {
+  const now = AppState.currentDate;
+  const dateStr = formatDateISO(now);
+  AppState.attendance.date = dateStr;
+
+
+  const current = detectCurrentLecture(now);
+  if (current) {
+    AppState.attendance.subjectId = current.subjectId;
+    AppState.attendance.subjectName = getSubjectName(current.subjectId);
+    AppState.attendance.teachers = [current.teacher];
+    AppState.attendance.type = current.type;
+    AppState.attendance.batch = current.batch;
+    AppState.attendance.time = current.startTime + '–' + current.endTime;
+
+
+    const existing = DB.attendance[dateStr]?.find(r => r.subjectId === current.subjectId && r.time === (current.startTime + '–' + current.endTime));
+    if (existing) {
+      loadRecordIntoForm(existing);
+    }
+  } else {
+    if (DB.subjects.length > 0) {
+      AppState.attendance.subjectId = DB.subjects[0].id;
+      AppState.attendance.subjectName = DB.subjects[0].name;
+      AppState.attendance.teachers = DB.subjects[0].teachers.length > 0 ? [DB.subjects[0].teachers[0]] : [];
+    }
+  }
+}
+
+
+function renderTeacherChips() {
+  const subjectId = AppState.attendance.subjectId;
+  const availableTeachers = getTeachersForSubject(subjectId);
+  const currentTeachers = AppState.attendance.teachers || [];
+  
+  const allTeachersToShow = [...new Set([...availableTeachers, ...currentTeachers])];
+  
+  const container = document.getElementById('att-teachers-chips');
+  if (allTeachersToShow.length === 0) {
+    container.innerHTML = '<span style="color:var(--muted);font-size:13px;">No teachers assigned to this subject. Add them in Setup.</span>';
+    return;
+  }
+  
+  container.innerHTML = allTeachersToShow.map(t => {
+    const isActive = currentTeachers.includes(t);
+    return `<div class="teacher-chip ${isActive ? 'active' : ''}" data-teacher="${t}">${t}</div>`;
+  }).join('');
+  
+  container.querySelectorAll('.teacher-chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      const teacher = chip.dataset.teacher;
+      const idx = AppState.attendance.teachers.indexOf(teacher);
+      if (idx > -1) {
+        AppState.attendance.teachers.splice(idx, 1);
+      } else {
+        AppState.attendance.teachers.push(teacher);
+      }
+      renderTeacherChips();
+      saveCurrentAttendance(true);
+    });
+  });
+}
+
+
+function renderExistingRecords() {
+  const container = document.getElementById('existing-records-list');
+  const records = getRecordsForDate(AppState.attendance.date);
+  if (records.length === 0) {
+    container.innerHTML = '';
+    return;
+  }
+  container.innerHTML = `
+    <div class="existing-records">
+      <div class="er-label">Saved Records on this Date (Tap to edit)</div>
+      ${records.map(r => `
+        <div class="er-item ${r.id === AppState.attendance.recordId ? 'active' : ''}" data-id="${r.id}">
+          <div class="er-info">
+            <div class="er-subject">${r.subjectName} - ${r.type}</div>
+            <div class="er-details">${r.time} • ${getTeachersFromRecord(r).join(', ')} • Batch ${r.batch}</div>
+          </div>
+          <div class="er-count">${r.present.length}/${getStudentsForBatch(r.batch).length}</div>
+        </div>
+      `).join('')}
+    </div>
+  `;
+  container.querySelectorAll('.er-item').forEach(item => {
+    item.addEventListener('click', () => {
+      const record = records.find(r => r.id === item.dataset.id);
+      if (record) loadRecordIntoForm(record);
+    });
+  });
+}
+
+
+function loadRecordIntoForm(record) {
+  AppState.attendance.recordId = record.id;
+  AppState.attendance.date = record.date;
+  AppState.attendance.subjectId = record.subjectId;
+  AppState.attendance.teachers = getTeachersFromRecord(record);
+  AppState.attendance.topic = record.topic;
+  AppState.attendance.remarks = record.remarks || '';
+  AppState.attendance.batch = record.batch;
+  AppState.attendance.type = record.type;
+  AppState.attendance.time = record.time;
+  AppState.attendance.present = [...record.present];
+  
+  document.getElementById('att-date').value = record.date;
+  document.getElementById('att-subject').value = record.subjectId;
+  renderTeacherChips();
+  document.getElementById('att-batch').value = record.batch;
+  document.getElementById('att-type').value = record.type;
+  document.getElementById('att-time').value = record.time;
+  document.getElementById('att-topic').value = record.topic;
+  document.getElementById('att-remarks').value = record.remarks || '';
+  
+  document.getElementById('delete-record-btn').classList.remove('hidden');
+  
+  renderStudents();
+  updateCounts();
+  updateAuditInfo();
+  renderExistingRecords();
+}
+
+
+function clearAttendanceForm() {
+  AppState.attendance.recordId = null;
+  AppState.attendance.topic = '';
+  AppState.attendance.remarks = '';
+  AppState.attendance.present = [];
+  
+  document.getElementById('att-topic').value = '';
+  document.getElementById('att-remarks').value = '';
+  document.getElementById('delete-record-btn').classList.add('hidden');
+  
+  renderStudents();
+  updateCounts();
+  updateAuditInfo();
+  renderExistingRecords();
+}
+
+
+function renderStudents() {
+  const container = document.getElementById('student-container');
+  const students = getStudentsForBatch(AppState.attendance.batch);
+
+
+  container.className = 'student-container ' + (AppState.attendance.mode === 'grid' ? 'grid-mode' : 'list-mode');
+
+
+  if (students.length === 0) {
+    container.innerHTML = '<div class="empty-state"><div class="es-icon">📭</div><div class="es-msg">No students in this batch.<br>Add students in Setup or select "Entire Class".</div></div>';
+    return;
+  }
+
+
+  const fragment = document.createDocumentFragment();
+  const isPresent = (roll) => AppState.attendance.present.includes(roll);
+
+
+  students.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'att-item' + (isPresent(s.roll) ? ' present' : '');
+    item.dataset.roll = s.roll;
+    item.dataset.search = (s.roll + ' ' + s.name).toLowerCase();
+    item.innerHTML = `
+      <span class="roll">${s.roll}</span>
+      <span class="name">${s.name}</span>
+      <span class="check">✓</span>
+    `;
+    fragment.appendChild(item);
+  });
+
+
+  container.innerHTML = '';
+  container.appendChild(fragment);
+}
+
+
+function togglePresent(roll) {
+  roll = parseInt(roll);
+  const idx = AppState.attendance.present.indexOf(roll);
+  if (idx > -1) {
+    AppState.attendance.present.splice(idx, 1);
+  } else {
+    AppState.attendance.present.push(roll);
+  }
+
+
+  const el = document.querySelector('.att-item[data-roll="' + roll + '"]');
+  if (el) {
+    el.classList.toggle('present', AppState.attendance.present.includes(roll));
+  }
+
+
+  updateCounts();
+  haptic();
+  saveCurrentAttendance(true);
+  renderExistingRecords();
+}
+
+
+function updateCounts() {
+  const students = getStudentsForBatch(AppState.attendance.batch);
+  const presentCount = AppState.attendance.present.length;
+  const absentCount = students.length - presentCount;
+  document.getElementById('present-count').textContent = presentCount;
+  document.getElementById('absent-count').textContent = absentCount;
+}
+
+
+function updateAuditInfo() {
+  const infoEl = document.getElementById('audit-info');
+  if (AppState.attendance.recordId) {
+    const record = findRecordById(AppState.attendance.recordId);
+    if (record) {
+      infoEl.classList.remove('hidden');
+      document.getElementById('audit-created').innerHTML = `🛈 Created: ${formatDateTime(record.createdAt)}`;
+      document.getElementById('audit-modified').innerHTML = `✎ Modified: ${formatDateTime(record.modifiedAt)}`;
+    }
+  } else {
+    infoEl.classList.add('hidden');
+  }
+}
+
+
+function markAllPresent() {
+  const students = getStudentsForBatch(AppState.attendance.batch);
+  AppState.attendance.present = students.map(s => s.roll);
+  document.querySelectorAll('.att-item').forEach(el => {
+    el.classList.add('present');
+  });
+  updateCounts();
+  haptic();
+  saveCurrentAttendance(true);
+  renderExistingRecords();
+}
+
+
+function resetAttendance() {
+  AppState.attendance.present = [];
+  document.querySelectorAll('.att-item').forEach(el => {
+    el.classList.remove('present');
+  });
+  updateCounts();
+  haptic();
+  saveCurrentAttendance(true);
+  renderExistingRecords();
+}
+
+
+function saveCurrentAttendance(silent) {
+  if (!AppState.attendance.date || !AppState.attendance.subjectId) {
+    if (!silent) showToast('Please select date and subject', 'error');
+    return;
+  }
+
+
+  const topic = AppState.attendance.topic.trim();
+  if (topic && !DB.topics.includes(topic)) {
+    DB.topics.unshift(topic);
+    if (DB.topics.length > 50) DB.topics = DB.topics.slice(0, 50);
+  }
+
+
+  const newDate = AppState.attendance.date;
+  if (!DB.attendance[newDate]) DB.attendance[newDate] = [];
+
+
+  let record = null;
+  let oldDateKey = null;
+  
+  if (AppState.attendance.recordId) {
+    for (const d in DB.attendance) {
+      const found = DB.attendance[d].find(r => r.id === AppState.attendance.recordId);
+      if (found) {
+        record = found;
+        oldDateKey = d;
+        break;
+      }
+    }
+  }
+
+
+  if (record) {
+    record.date = newDate;
+    record.subjectId = AppState.attendance.subjectId;
+    record.subjectName = getSubjectName(AppState.attendance.subjectId);
+    record.teachers = [...AppState.attendance.teachers];
+    delete record.teacher; 
+    record.topic = topic;
+    record.batch = AppState.attendance.batch;
+    record.type = AppState.attendance.type;
+    record.time = AppState.attendance.time || '';
+    record.present = [...AppState.attendance.present];
+    record.remarks = AppState.attendance.remarks || '';
+    record.modifiedAt = Date.now();
+    record.history.push({ ts: Date.now(), action: 'Record updated' });
+    
+    if (oldDateKey !== newDate) {
+      DB.attendance[oldDateKey] = DB.attendance[oldDateKey].filter(r => r.id !== record.id);
+      DB.attendance[newDate].push(record);
+    }
+  } else {
+    // Check for duplicate (Date + Time + Subject)
+    const existingIdx = DB.attendance[newDate].findIndex(r => 
+      r.subjectId === AppState.attendance.subjectId && r.time === (AppState.attendance.time || '')
+    );
+    
+    if (existingIdx > -1) {
+      // Update existing duplicate instead of creating new
+      record = DB.attendance[newDate][existingIdx];
+      record.subjectName = getSubjectName(AppState.attendance.subjectId);
+      record.teachers = [...AppState.attendance.teachers];
+      record.topic = topic;
+      record.batch = AppState.attendance.batch;
+      record.type = AppState.attendance.type;
+      record.present = [...AppState.attendance.present];
+      record.remarks = AppState.attendance.remarks || '';
+      record.modifiedAt = Date.now();
+      record.history.push({ ts: Date.now(), action: 'Record updated via duplicate prevention' });
+      AppState.attendance.recordId = record.id;
+    } else {
+      const newRecord = {
+        id: uid(),
+        date: newDate,
+        subjectId: AppState.attendance.subjectId,
+        subjectName: getSubjectName(AppState.attendance.subjectId),
+        teachers: [...AppState.attendance.teachers],
+        topic: topic,
+        batch: AppState.attendance.batch,
+        type: AppState.attendance.type,
+        time: AppState.attendance.time || '',
+        present: [...AppState.attendance.present],
+        remarks: AppState.attendance.remarks || '',
+        createdAt: Date.now(),
+        modifiedAt: Date.now(),
+        history: []
+      };
+      DB.attendance[newDate].push(newRecord);
+      AppState.attendance.recordId = newRecord.id;
+    }
+  }
+
+
+  if (silent) {
+    silentSave();
+  } else {
+    saveDB();
+  }
+  
+  updateAuditInfo();
+  document.getElementById('delete-record-btn').classList.remove('hidden');
+}
+
+
+function deleteCurrentRecord() {
+  if (!AppState.attendance.recordId) {
+    showToast('No record loaded to delete', 'error');
+    return;
+  }
+  if (!confirm('Move this attendance record to Recycle Bin?')) return;
+
+
+  const dateKey = AppState.attendance.date;
+  if (DB.attendance[dateKey]) {
+    const recordIdx = DB.attendance[dateKey].findIndex(r => r.id === AppState.attendance.recordId);
+    if (recordIdx > -1) {
+      const [deleted] = DB.attendance[dateKey].splice(recordIdx, 1);
+      deleted._deletedAt = Date.now();
+      DB.recycleBin.push(deleted);
+      saveDB();
+      showToast('Moved to Recycle Bin', 'success');
+      clearAttendanceForm();
+      renderAttendanceView();
+    }
+  }
+}
+
+
+// ============================================================
+// COPY MODAL (WhatsApp Export)
+// ============================================================
+function showCopyModal() {
+  saveCurrentAttendance(true);
+
+
+  const students = getStudentsForBatch(AppState.attendance.batch);
+  const presentNums = [...AppState.attendance.present].sort((a,b) => a-b);
+  const absentNums = students.map(s => s.roll).filter(r => !AppState.attendance.present.includes(r)).sort((a,b) => a-b);
+  const dateDisplay = AppState.attendance.date.split('-').reverse().join('/');
+
+
+  const presentStr = presentNums.join(', ');
+  const absentStr = absentNums.join(', ');
+  const teachersStr = AppState.attendance.teachers.join(', ');
+  const batchLabel = formatBatchLabel(AppState.attendance.batch);
+
+
+  const fullFormat = `Date: ${dateDisplay}
+Time: ${AppState.attendance.time || '—'}
+Class: ${AppState.attendance.type}
+Batch: ${batchLabel}
+Subject: ${getSubjectName(AppState.attendance.subjectId)}
+Professor Name: ${teachersStr || '—'}
+Topic: ${AppState.attendance.topic || '—'}
+
+Present: ${presentStr}
+
+Absent: ${absentStr}`;
+
+
+  const presentOnly = `Date: ${dateDisplay}
+Subject: ${getSubjectName(AppState.attendance.subjectId)}
+Present: ${presentStr}`;
+
+
+  const absentOnly = `Date: ${dateDisplay}
+Subject: ${getSubjectName(AppState.attendance.subjectId)}
+Absent: ${absentStr}`;
+
+
+  const formats = [
+    { id: 'full', title: 'Full Format (Present + Absent)', text: fullFormat },
+    { id: 'present', title: 'Present Numbers Only', text: presentOnly },
+    { id: 'absent', title: 'Absent Numbers Only', text: absentOnly }
+  ];
+
+
+  let activeFormat = 0;
+
+
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-header">
+      <h2>📋 Copy Attendance</h2>
+      <button class="modal-close" id="modal-close-btn">✕</button>
+    </div>
+    <div class="copy-options" id="copy-options">
+      ${formats.map((f, i) => `
+        <button class="copy-opt ${i === 0 ? 'active' : ''}" data-idx="${i}">
+          <div class="co-title">${f.title}</div>
+          <div class="co-preview">${f.text.substring(0, 60)}...</div>
+        </button>
+      `).join('')}
+    </div>
+    <div class="copy-preview" id="copy-preview">${fullFormat}</div>
+    <button class="btn-sm btn-success" id="copy-action-btn" style="width:100%;padding:14px;margin-top:12px;font-size:15px;justify-content:center;gap:8px;">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      Copy to Clipboard
+    </button>
+  `;
+
+
+  document.getElementById('modal-overlay').classList.add('active');
+
+
+  modal.querySelectorAll('.copy-opt').forEach(btn => {
+    btn.addEventListener('click', () => {
+      modal.querySelectorAll('.copy-opt').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFormat = parseInt(btn.dataset.idx);
+      document.getElementById('copy-preview').textContent = formats[activeFormat].text;
+    });
+  });
+
+
+  document.getElementById('copy-action-btn').addEventListener('click', () => {
+    const text = formats[activeFormat].text;
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('✓ Copied! Paste in WhatsApp', 'success');
+        closeModal();
+      }).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  });
+
+
+  document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+}
+
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('✓ Copied! Paste in WhatsApp', 'success');
+  } catch(e) {
+    showToast('Copy failed - long press to copy', 'error');
+  }
+  document.body.removeChild(ta);
+  closeModal();
+}
+
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.remove('active');
+}
+
+
+// ============================================================
+// REPORTS
+// ============================================================
+function computeStats() {
+  const allRecords = getAllAttendanceRecords();
+  const studentStats = {};
+  const subjectStats = {};
+  const teacherStats = {};
+  const batchStats = { A: {present:0,total:0}, B: {present:0,total:0}, Both: {present:0,total:0}, None: {present:0,total:0} };
+  let grandPresent = 0, grandTotal = 0;
+
+
+  DB.students.forEach(s => {
+    studentStats[s.roll] = { present:0, total:0, subjects:{}, teachers:{} };
+  });
+  DB.subjects.forEach(sub => {
+    subjectStats[sub.id] = { present:0, total:0, count:0 };
+  });
+
+
+  allRecords.forEach(rec => {
+    const batchStudents = getStudentsForBatch(rec.batch);
+    const recTeachers = getTeachersFromRecord(rec);
+    
+    batchStudents.forEach(s => {
+      studentStats[s.roll].total++;
+      grandTotal++;
+      if (rec.present.includes(s.roll)) {
+        studentStats[s.roll].present++;
+        grandPresent++;
+      }
+      
+      if (!studentStats[s.roll].subjects[rec.subjectId]) {
+        studentStats[s.roll].subjects[rec.subjectId] = { present:0, total:0 };
+      }
+      studentStats[s.roll].subjects[rec.subjectId].total++;
+      if (rec.present.includes(s.roll)) {
+        studentStats[s.roll].subjects[rec.subjectId].present++;
+      }
+      
+      recTeachers.forEach(teacherName => {
+        if (!studentStats[s.roll].teachers[teacherName]) {
+          studentStats[s.roll].teachers[teacherName] = { present:0, total:0 };
+        }
+        studentStats[s.roll].teachers[teacherName].total++;
+        if (rec.present.includes(s.roll)) {
+          studentStats[s.roll].teachers[teacherName].present++;
+        }
+      });
+    });
+
+
+    if (!subjectStats[rec.subjectId]) subjectStats[rec.subjectId] = { present:0, total:0, count:0 };
+    subjectStats[rec.subjectId].total += batchStudents.length;
+    subjectStats[rec.subjectId].present += rec.present.length;
+    subjectStats[rec.subjectId].count++;
+
+
+    if (!batchStats[rec.batch]) batchStats[rec.batch] = {present:0, total:0};
+    batchStats[rec.batch].total += batchStudents.length;
+    batchStats[rec.batch].present += rec.present.length;
+    
+    recTeachers.forEach(teacherName => {
+      if (!teacherStats[teacherName]) teacherStats[teacherName] = { present:0, total:0, count:0 };
+      teacherStats[teacherName].total += batchStudents.length;
+      teacherStats[teacherName].present += rec.present.length;
+      teacherStats[teacherName].count++;
+    });
+  });
+
+
+  const classAvg = grandTotal > 0 ? (grandPresent / grandTotal) * 100 : 0;
+  Object.keys(studentStats).forEach(roll => {
+    studentStats[roll].percentage = studentStats[roll].total > 0 ? (studentStats[roll].present / studentStats[roll].total) * 100 : 0;
+  });
+  Object.keys(subjectStats).forEach(id => {
+    subjectStats[id].percentage = subjectStats[id].total > 0 ? (subjectStats[id].present / subjectStats[id].total) * 100 : 0;
+  });
+  Object.keys(batchStats).forEach(b => {
+    batchStats[b].percentage = batchStats[b].total > 0 ? (batchStats[b].present / batchStats[b].total) * 100 : 0;
+  });
+  Object.keys(teacherStats).forEach(t => {
+    teacherStats[t].percentage = teacherStats[t].total > 0 ? (teacherStats[t].present / teacherStats[t].total) * 100 : 0;
+  });
+
+
+  return {
+    studentStats, subjectStats, batchStats, teacherStats,
+    classAvg, grandPresent, grandTotal,
+    totalRecords: allRecords.length,
+    allRecords
+  };
+}
+
+
+function renderReports() {
+  renderReportOverview();
+  renderReportStudents();
+  renderReportSubjects();
+  renderReportBatch();
+  renderReportTrend();
+}
+
+
+function renderReportOverview() {
+  const stats = computeStats();
+  const studentPcts = Object.values(stats.studentStats).filter(s => s.total > 0).map(s => s.percentage);
+  const highest = studentPcts.length > 0 ? Math.max(...studentPcts) : 0;
+  const lowest = studentPcts.length > 0 ? Math.min(...studentPcts) : 0;
+
+
+  document.getElementById('report-overview').innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>Class Overview</span></div>
+      <div class="stat-row"><span class="lbl">Class Average</span><span class="val ${stats.classAvg >= 75 ? 'green' : 'red'}">${stats.classAvg.toFixed(1)}%</span></div>
+      <div class="stat-row"><span class="lbl">Total Lectures</span><span class="val">${stats.totalRecords}</span></div>
+      <div class="stat-row"><span class="lbl">Highest Attendance</span><span class="val green">${highest.toFixed(1)}%</span></div>
+      <div class="stat-row"><span class="lbl">Lowest Attendance</span><span class="val ${lowest < 75 ? 'red' : ''}">${lowest.toFixed(1)}%</span></div>
+      <div class="stat-row"><span class="lbl">Total Present</span><span class="val green">${stats.grandPresent}</span></div>
+      <div class="stat-row"><span class="lbl">Total Absent</span><span class="val red">${stats.grandTotal - stats.grandPresent}</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>Attendance Distribution</span></div>
+      <div class="bar-chart">
+        ${renderDistributionBar('Above 75%', studentPcts.filter(p => p >= 75).length, studentPcts.length, 'green')}
+        ${renderDistributionBar('50% - 75%', studentPcts.filter(p => p >= 50 && p < 75).length, studentPcts.length, 'amber')}
+        ${renderDistributionBar('Below 50%', studentPcts.filter(p => p < 50).length, studentPcts.length, 'red')}
+      </div>
+    </div>
+  `;
+}
+
+
+function renderDistributionBar(label, count, total, color) {
+  const pct = total > 0 ? (count / total) * 100 : 0;
+  return `
+    <div class="bar-item">
+      <span class="bar-label">${label}</span>
+      <div class="bar-track">
+        <div class="bar-fill ${color}" style="width:${pct}%"><span class="bar-val">${count}</span></div>
+      </div>
+    </div>`;
+}
+
+
+function renderReportStudents() {
+  const stats = computeStats();
+  const students = [...DB.students].sort((a,b) => a.roll - b.roll);
+
+
+  document.getElementById('report-students').innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>Student List</span><span class="action">Tap for details</span></div>
+      ${students.map(s => {
+        const st = stats.studentStats[s.roll] || {percentage:0, present:0, total:0};
+        const pct = st.percentage;
+        const cls = pct >= 75 ? 'good' : 'warn';
+        const warning = pct < 75 && pct > 0 ? 'warning' : '';
+        const warningBadge = pct < 75 && pct > 0 ? '<span class="warning-badge">⚠</span>' : '';
+        return `
+          <div class="student-row ${warning}" data-roll="${s.roll}">
+            <span class="sr-roll">${s.roll}</span>
+            <div class="sr-name">${s.name}</div>
+            <span class="sr-batch">${s.batch || 'None'}</span>
+            <span class="sr-pct ${cls}">${pct.toFixed(0)}%${warningBadge}</span>
+          </div>`;
+      }).join('')}
+    </div>
+  `;
+
+
+  document.querySelectorAll('#report-students .student-row').forEach(row => {
+    row.addEventListener('click', () => showStudentProfile(parseInt(row.dataset.roll)));
+  });
+}
+
+
+function renderReportSubjects() {
+  const stats = computeStats();
+  document.getElementById('report-subjects').innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>Subject Analysis</span></div>
+      <div class="bar-chart">
+        ${DB.subjects.map(sub => {
+          const st = stats.subjectStats[sub.id] || {percentage:0, count:0};
+          const color = st.percentage >= 75 ? 'green' : st.percentage >= 50 ? 'amber' : 'red';
+          return `
+            <div class="bar-item">
+              <span class="bar-label">${sub.name}</span>
+              <div class="bar-track">
+                <div class="bar-fill ${color}" style="width:${st.percentage}%">
+                  <span class="bar-val">${st.percentage.toFixed(0)}%</span>
+                </div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>Teacher Analysis</span></div>
+      <div class="bar-chart">
+        ${Object.keys(stats.teacherStats).map(t => {
+          const st = stats.teacherStats[t];
+          const color = st.percentage >= 75 ? 'green' : st.percentage >= 50 ? 'amber' : 'red';
+          return `
+            <div class="bar-item">
+              <span class="bar-label">${t}</span>
+              <div class="bar-track">
+                <div class="bar-fill ${color}" style="width:${st.percentage}%">
+                  <span class="bar-val">${st.percentage.toFixed(0)}%</span>
+                </div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+
+function renderReportBatch() {
+  const stats = computeStats();
+  const batchA = stats.batchStats.A || {percentage:0, present:0, total:0};
+  const batchB = stats.batchStats.B || {percentage:0, present:0, total:0};
+
+
+  document.getElementById('report-batch').innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>Batch Comparison</span></div>
+      <div class="bar-chart">
+        <div class="bar-item">
+          <span class="bar-label">Batch A</span>
+          <div class="bar-track">
+            <div class="bar-fill ${batchA.percentage >= 75 ? 'green' : 'amber'}" style="width:${batchA.percentage}%">
+              <span class="bar-val">${batchA.percentage.toFixed(0)}%</span>
+            </div>
+          </div>
+        </div>
+        <div class="bar-item">
+          <span class="bar-label">Batch B</span>
+          <div class="bar-track">
+            <div class="bar-fill ${batchB.percentage >= 75 ? 'green' : 'amber'}" style="width:${batchB.percentage}%">
+              <span class="bar-val">${batchB.percentage.toFixed(0)}%</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="stat-row mt-16"><span class="lbl">Batch A Present</span><span class="val green">${batchA.present}/${batchA.total}</span></div>
+      <div class="stat-row"><span class="lbl">Batch B Present</span><span class="val green">${batchB.present}/${batchB.total}</span></div>
+      <div class="stat-row"><span class="lbl">Difference</span><span class="val">${Math.abs(batchA.percentage - batchB.percentage).toFixed(1)}%</span></div>
+    </div>
+  `;
+}
+
+
+function renderReportTrend() {
+  const stats = computeStats();
+  const dates = Object.keys(DB.attendance).sort();
+  const data = dates.map(date => {
+    const records = DB.attendance[date];
+    let present = 0, total = 0;
+    records.forEach(r => {
+      const students = getStudentsForBatch(r.batch);
+      total += students.length;
+      present += r.present.length;
+    });
+    return { date, rate: total > 0 ? (present/total)*100 : 0 };
+  }).filter(d => d.rate > 0).slice(-15);
+
+
+  const svg = createLineChart(data);
+
+
+  document.getElementById('report-trend').innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>Attendance Trend</span></div>
+      ${data.length > 0 ? `
+        <div class="chart-container">${svg}</div>
+        <div class="stat-row mt-16"><span class="lbl">Avg (Last ${data.length} days)</span><span class="val">${(data.reduce((a,b) => a+b.rate, 0)/data.length).toFixed(1)}%</span></div>
+        <div class="stat-row"><span class="lbl">Best Day</span><span class="val green">${Math.max(...data.map(d=>d.rate)).toFixed(1)}%</span></div>
+        <div class="stat-row"><span class="lbl">Worst Day</span><span class="val red">${Math.min(...data.map(d=>d.rate)).toFixed(1)}%</span></div>
+      ` : '<div class="empty-state"><div class="es-icon">📈</div><div class="es-msg">No data yet</div></div>'}
+    </div>
+  `;
+}
+
+
+function createLineChart(data) {
+  if (data.length < 2) return '<div style="text-align:center;padding:20px;color:var(--muted)">Need more data for chart</div>';
+  const w = 320, h = 160, p = 30;
+  const xStep = (w - p*2) / (data.length - 1);
+  const yScale = (h - p*2) / 100;
+
+
+  const points = data.map((d, i) => ({
+    x: p + i * xStep,
+    y: h - p - d.rate * yScale,
+    rate: d.rate,
+    date: d.date
+  }));
+
+
+  const path = points.map((pt, i) =>
+    (i === 0 ? 'M' : 'L') + ' ' + pt.x + ' ' + pt.y
+  ).join(' ');
+
+
+  const gridLines = [0, 25, 50, 75, 100].map(v => {
+    const y = h - p - v * yScale;
+    return `<line x1="${p}" y1="${y}" x2="${w-p}" y2="${y}" stroke="var(--border)" stroke-dasharray="2"/>` +
+           `<text x="${p-4}" y="${y+3}" text-anchor="end" font-size="8" fill="var(--muted)">${v}</text>`;
+  }).join('');
+
+
+  const dots = points.map(pt =>
+    `<circle cx="${pt.x}" cy="${pt.y}" r="3" fill="var(--primary)"/>`
+  ).join('');
+
+
+  return `
+    <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="xMidYMid meet">
+      ${gridLines}
+      <path d="${path}" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linejoin="round"/>
+      ${dots}
+    </svg>`;
+}
+
+
+// ============================================================
+// STUDENT PROFILE MODAL (WITH EDITABLE HISTORY)
+// ============================================================
+function showStudentProfile(roll) {
+  const student = DB.students.find(s => s.roll === roll);
+  if (!student) return;
+
+
+  const stats = computeStats();
+  const st = stats.studentStats[roll] || {present:0, total:0, percentage:0, subjects:{}, teachers:{}};
+  const pct = st.percentage;
+  const absent = st.total - st.present;
+
+
+  let prediction = '';
+  if (st.total > 0) {
+    if (pct >= 75) {
+      const canMiss = Math.floor((st.present - 0.75 * st.total) / 0.75);
+      prediction = `
+        <div class="prediction-box safe">
+          <div class="pb-title">✓ Safe Zone</div>
+          <div class="pb-detail">Can miss ${canMiss} more lecture${canMiss !== 1 ? 's' : ''} and stay above 75%</div>
+        </div>`;
+    } else {
+      const needed = Math.ceil((0.75 * st.total - st.present) / 0.25);
+      prediction = `
+        <div class="prediction-box danger">
+          <div class="pb-title">⚠ Below 75%</div>
+          <div class="pb-detail">Must attend next ${needed} consecutive lecture${needed !== 1 ? 's' : ''} to reach 75%</div>
+        </div>`;
+    }
+  }
+
+
+  const subjectBreakdown = DB.subjects.map(sub => {
+    const ss = st.subjects[sub.id] || {present:0, total:0};
+    const sPct = ss.total > 0 ? (ss.present/ss.total)*100 : 0;
+    const color = sPct >= 75 ? 'green' : sPct >= 50 ? 'amber' : 'red';
+    return `
+      <div class="bar-item">
+        <span class="bar-label">${sub.name}</span>
+        <div class="bar-track">
+          <div class="bar-fill ${color}" style="width:${sPct}%">
+            <span class="bar-val">${ss.present}/${ss.total}</span>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+
+
+  const calendar = generateStudentCalendar(roll);
+  const historyHtml = renderStudentHistory(roll);
+
+
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-header">
+      <h2>Student Profile</h2>
+      <button class="modal-close" id="modal-close-btn">✕</button>
+    </div>
+    <div class="profile-header">
+      <div class="ph-roll">${student.roll}</div>
+      <div class="ph-name">${student.name}</div>
+      <div class="ph-batch">Batch ${student.batch || 'None'}</div>
+    </div>
+    <div class="profile-stats">
+      <div class="profile-stat"><div class="ps-num" style="color:var(--green)">${st.present}</div><div class="ps-lbl">Present</div></div>
+      <div class="profile-stat"><div class="ps-num" style="color:var(--red)">${absent}</div><div class="ps-lbl">Absent</div></div>
+      <div class="profile-stat"><div class="ps-num" style="color:${pct>=75?'var(--green)':'var(--red)'}">${pct.toFixed(0)}%</div><div class="ps-lbl">Overall</div></div>
+    </div>
+    ${prediction}
+    <div style="margin:16px 0">
+      <div style="font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:8px;letter-spacing:0.5px">Recent Attendance</div>
+      ${calendar}
+    </div>
+    <div style="margin:16px 0">
+      <div style="font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:8px;letter-spacing:0.5px">Subject Breakdown</div>
+      <div class="bar-chart">${subjectBreakdown}</div>
+    </div>
+    <div style="margin:16px 0">
+      <div style="font-size:13px;font-weight:800;color:var(--muted);text-transform:uppercase;margin-bottom:8px;letter-spacing:0.5px">Attendance History (Tap to Edit)</div>
+      ${historyHtml}
+    </div>
+  `;
+
+
+  document.getElementById('modal-overlay').classList.add('active');
+  document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+  
+  modal.querySelectorAll('.history-toggle').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const rec = findRecordById(id);
+      if (!rec) return;
+      
+      const idx = rec.present.indexOf(roll);
+      if (idx > -1) {
+        rec.present.splice(idx, 1);
+      } else {
+        rec.present.push(roll);
+      }
+      
+      rec.modifiedAt = Date.now();
+      rec.history.push({ ts: Date.now(), action: `Toggled attendance for Roll ${roll} from Student Profile` });
+      
+      saveDB(true);
+      showToast('✓ Attendance updated', 'success');
+      
+      showStudentProfile(roll);
+      
+      if (AppState.currentView === 'reports') {
+        renderReports();
+      }
+    });
+  });
+}
+
+
+function renderStudentHistory(roll) {
+  const records = getAllAttendanceRecords().filter(r => {
+    const students = getStudentsForBatch(r.batch);
+    return students.some(s => s.roll === roll);
+  }).sort((a,b) => b.date.localeCompare(a.date) || b.time.localeCompare(a.time));
+
+
+  if (records.length === 0) {
+    return '<div class="empty-state" style="padding:20px"><div class="es-icon">📭</div><div class="es-msg">No attendance history</div></div>';
+  }
+
+
+  let html = '<div class="history-list">';
+  records.forEach(r => {
+    const isPresent = r.present.includes(roll);
+    const statusClass = isPresent ? 'present' : 'absent';
+    const statusText = isPresent ? 'Present' : 'Absent';
+    const dateDisplay = r.date.split('-').reverse().join('/');
+    
+    html += `
+      <div class="history-item" data-id="${r.id}">
+        <div class="hi-info">
+          <div class="hi-subject">${r.subjectName} - ${r.time}</div>
+          <div class="hi-details">${dateDisplay} • ${r.type} • ${getTeachersFromRecord(r).join(', ')}</div>
+        </div>
+        <button class="history-toggle ${statusClass}" data-id="${r.id}">
+          ${statusText}
+        </button>
+      </div>
+    `;
+  });
+  html += '</div>';
+  return html;
+}
+
+
+function generateStudentCalendar(roll) {
+  const today = new Date();
+  const days = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const dateStr = formatDateISO(d);
+    const dayName = getDayName(d);
+    const records = DB.attendance[dateStr] || [];
+    const slots = DB.timetable[dayName] || [];
+
+
+    let status = 'no-class';
+    if (slots.length > 0) {
+      const relevantRecords = records.filter(r => {
+        const students = getStudentsForBatch(r.batch);
+        return students.some(s => s.roll === roll);
+      });
+      if (relevantRecords.length > 0) {
+        const allPresent = relevantRecords.every(r => r.present.includes(roll));
+        status = allPresent ? 'present' : 'absent';
+      }
+    }
+
+
+    days.push({ date: d.getDate(), status, dateStr });
+  }
+
+
+  const dayHeaders = ['S','M','T','W','T','F','S'];
+  let html = '<div class="calendar">';
+  dayHeaders.forEach(h => html += `<div class="cal-head">${h}</div>`);
+
+
+  const firstDay = new Date(today);
+  firstDay.setDate(firstDay.getDate() - 29);
+  const startDay = firstDay.getDay();
+  for (let i = 0; i < startDay; i++) html += '<div class="cal-day empty"></div>';
+
+
+  days.forEach(d => {
+    const mark = d.status === 'present' ? 'P' : d.status === 'absent' ? 'A' : '-';
+    html += `<div class="cal-day ${d.status}"><span class="cal-num">${d.date}</span><span class="cal-mark">${mark}</span></div>`;
+  });
+
+
+  html += '</div>';
+  html += '<div style="display:flex;gap:12px;font-size:11px;color:var(--muted);margin-top:8px;justify-content:center"><span>🟢 Present</span><span>🔴 Absent</span><span>⚪ No class</span></div>';
+  return html;
+}
+
+
+// ============================================================
+// SETUP — TIMETABLE
+// ============================================================
+function renderSetup() {
+  if (AppState.setupTab === 'timetable') renderTimetableSetup();
+  if (AppState.setupTab === 'subjects') renderSubjectsSetup();
+  if (AppState.setupTab === 'students') renderStudentsSetup();
+  if (AppState.setupTab === 'settings') renderSettingsSetup();
+}
+
+
+function renderTimetableSetup() {
+  const container = document.getElementById('setup-timetable');
+  const daySelect = container.querySelector('#tt-day-select')?.value || 'Monday';
+  const slots = DB.timetable[daySelect] || [];
+
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>Timetable Editor</span></div>
+      <div class="form-field" style="margin-bottom:12px">
+        <label>Select Day</label>
+        <select id="tt-day-select">
+          ${DAYS.filter(d => d !== 'Sunday').map(d => `<option value="${d}" ${d === daySelect ? 'selected' : ''}>${d}</option>`).join('')}
+        </select>
+      </div>
+      <div id="tt-slots">
+        ${slots.map((slot, i) => renderTimetableSlot(slot, i)).join('')}
+      </div>
+      <button class="add-btn" id="tt-add-slot">+ Add Time Slot</button>
+    </div>
+  `;
+
+
+  document.getElementById('tt-day-select').addEventListener('change', renderTimetableSetup);
+
+
+  document.getElementById('tt-add-slot').addEventListener('click', () => {
+    if (!DB.timetable[daySelect]) DB.timetable[daySelect] = [];
+    DB.timetable[daySelect].push({
+      startTime: '9:00', endTime: '10:00', subjectId: DB.subjects[0]?.id || '',
+      teacher: '', type: 'Theory', batch: 'Both'
+    });
+    saveDB(true);
+    renderTimetableSetup();
+  });
+
+
+  container.querySelectorAll('.tt-field').forEach(field => {
+    field.addEventListener('change', () => {
+      const idx = parseInt(field.dataset.idx);
+      const key = field.dataset.key;
+      DB.timetable[daySelect][idx][key] = field.value;
+      if (key === 'subjectId') {
+        const teachers = getTeachersForSubject(field.value);
+        DB.timetable[daySelect][idx].teacher = teachers[0] || '';
+        renderTimetableSetup();
+      }
+      saveDB(true);
+    });
+  });
+
+
+  container.querySelectorAll('.tt-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const idx = parseInt(btn.dataset.idx);
+      DB.timetable[daySelect].splice(idx, 1);
+      saveDB(true);
+      renderTimetableSetup();
+    });
+  });
+}
+
+
+function renderTimetableSlot(slot, idx) {
+  const teachers = getTeachersForSubject(slot.subjectId);
+  return `
+    <div class="timetable-slot">
+      <div class="ts-header">
+        <span class="ts-time">Slot ${idx+1}</span>
+        <button class="tt-delete icon-btn" data-idx="${idx}" style="width:28px;height:28px;font-size:14px">🗑</button>
+      </div>
+      <div class="ts-fields">
+        <div class="form-field">
+          <label>Start</label>
+          <input type="text" class="tt-field" data-idx="${idx}" data-key="startTime" value="${slot.startTime}">
+        </div>
+        <div class="form-field">
+          <label>End</label>
+          <input type="text" class="tt-field" data-idx="${idx}" data-key="endTime" value="${slot.endTime}">
+        </div>
+        <div class="form-field full">
+          <label>Subject</label>
+          <select class="tt-field" data-idx="${idx}" data-key="subjectId">
+            ${DB.subjects.map(s => `<option value="${s.id}" ${s.id===slot.subjectId?'selected':''}>${s.name}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Teacher</label>
+          <select class="tt-field" data-idx="${idx}" data-key="teacher">
+            ${teachers.map(t => `<option value="${t}" ${t===slot.teacher?'selected':''}>${t}</option>`).join('')}
+          </select>
+        </div>
+        <div class="form-field">
+          <label>Batch</label>
+          <select class="tt-field" data-idx="${idx}" data-key="batch">
+            <option value="A" ${slot.batch==='A'?'selected':''}>A</option>
+            <option value="B" ${slot.batch==='B'?'selected':''}>B</option>
+            <option value="Both" ${slot.batch==='Both'?'selected':''}>Both</option>
+            <option value="None" ${slot.batch==='None'?'selected':''}>None</option>
+          </select>
+        </div>
+        <div class="form-field full">
+          <label>Type</label>
+          <select class="tt-field" data-idx="${idx}" data-key="type">
+            <option value="Theory" ${slot.type==='Theory'?'selected':''}>Theory</option>
+            <option value="Practical" ${slot.type==='Practical'?'selected':''}>Practical</option>
+            <option value="Clinical" ${slot.type==='Clinical'?'selected':''}>Clinical</option>
+          </select>
+        </div>
+      </div>
+    </div>`;
+}
+
+
+// ============================================================
+// SETUP — SUBJECTS & TEACHERS
+// ============================================================
+function renderSubjectsSetup() {
+  const container = document.getElementById('setup-subjects');
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>Subjects & Teachers</span></div>
+      ${DB.subjects.map(sub => `
+        <div class="setup-item" style="flex-direction:column;align-items:stretch">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div class="si-info"><div class="si-title">${sub.name}</div></div>
+            <div class="si-actions">
+              <button class="sub-edit" data-id="${sub.id}">✏️</button>
+              <button class="sub-delete" data-id="${sub.id}">🗑</button>
+            </div>
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">
+            ${sub.teachers.map(t => `
+              <span style="background:var(--primary-bg);color:var(--primary);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:6px;border:1px solid var(--primary)">
+                ${t}
+                <button class="teacher-remove" data-sub="${sub.id}" data-teacher="${t}" style="font-size:14px;line-height:1;background:none;color:inherit">✕</button>
+              </span>
+            `).join('')}
+            <button class="teacher-add" data-id="${sub.id}" style="background:var(--card-alt);border:1px dashed var(--border);padding:6px 12px;border-radius:20px;font-size:12px;font-weight:700;color:var(--primary)">+ Add Teacher</button>
+          </div>
+        </div>
+      `).join('')}
+      <button class="add-btn" id="sub-add">+ Add Subject</button>
+    </div>
+  `;
+
+
+  document.getElementById('sub-add').addEventListener('click', () => {
+    const name = prompt('Enter subject name:');
+    if (name && name.trim()) {
+      const exists = DB.subjects.find(s => s.name.toLowerCase() === name.trim().toLowerCase());
+      if (exists) { showToast('Subject already exists', 'error'); return; }
+      DB.subjects.push({ id: uid(), name: name.trim(), teachers: [] });
+      saveDB();
+      renderSubjectsSetup();
+    }
+  });
+
+
+  container.querySelectorAll('.sub-edit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sub = DB.subjects.find(s => s.id === btn.dataset.id);
+      const name = prompt('Edit subject name:', sub.name);
+      if (name && name.trim()) {
+        sub.name = name.trim();
+        saveDB();
+        renderSubjectsSetup();
+      }
+    });
+  });
+
+
+  container.querySelectorAll('.sub-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (confirm('Delete this subject? Historical records will keep the subject name.')) {
+        DB.subjects = DB.subjects.filter(s => s.id !== btn.dataset.id);
+        saveDB();
+        renderSubjectsSetup();
+      }
+    });
+  });
+
+
+  container.querySelectorAll('.teacher-add').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sub = DB.subjects.find(s => s.id === btn.dataset.id);
+      const name = prompt('Enter teacher name:');
+      if (name && name.trim()) {
+        if (sub.teachers.includes(name.trim())) { showToast('Teacher already exists', 'error'); return; }
+        sub.teachers.push(name.trim());
+        saveDB();
+        renderSubjectsSetup();
+      }
+    });
+  });
+
+
+  container.querySelectorAll('.teacher-remove').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sub = DB.subjects.find(s => s.id === btn.dataset.sub);
+      sub.teachers = sub.teachers.filter(t => t !== btn.dataset.teacher);
+      saveDB();
+      renderSubjectsSetup();
+    });
+  });
+}
+
+
+// ============================================================
+// SETUP — STUDENTS (With Batch Assignment)
+// ============================================================
+function renderStudentsSetup() {
+  const container = document.getElementById('setup-students');
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>Students (${DB.students.length})</span></div>
+      ${DB.students.map(s => `
+        <div class="setup-item">
+          <span class="sr-roll">${s.roll}</span>
+          <div class="si-info">
+            <div class="si-title">${s.name}</div>
+            <div class="si-sub">Batch ${s.batch || 'None'}</div>
+          </div>
+          <div class="si-actions">
+            <button class="student-edit" data-roll="${s.roll}">✏️</button>
+            <button class="student-delete" data-roll="${s.roll}">🗑</button>
+          </div>
+        </div>
+      `).join('')}
+      <button class="add-btn" id="student-add">+ Add Student</button>
+    </div>
+  `;
+
+
+  document.getElementById('student-add').addEventListener('click', () => {
+    const maxRoll = Math.max(...DB.students.map(s => s.roll), 0);
+    const name = prompt('Enter student name (ROLL_NUMBER FORMAT):');
+    if (name && name.trim()) {
+      const batch = prompt('Assign Batch (A, B, or None):', 'A');
+      const validBatches = ['A', 'B', 'None'];
+      const finalBatch = validBatches.includes(batch) ? batch : 'None';
+      DB.students.push({ roll: maxRoll + 1, name: name.trim().toUpperCase(), batch: finalBatch });
+      DB.students.sort((a,b) => a.roll - b.roll);
+      saveDB();
+      renderStudentsSetup();
+    }
+  });
+
+
+  container.querySelectorAll('.student-edit').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const student = DB.students.find(s => s.roll === parseInt(btn.dataset.roll));
+      const name = prompt('Edit student name:', student.name);
+      if (name && name.trim()) {
+        const batch = prompt('Assign Batch (A, B, or None):', student.batch || 'None');
+        const validBatches = ['A', 'B', 'None'];
+        student.name = name.trim().toUpperCase();
+        if (validBatches.includes(batch)) {
+          student.batch = batch;
+        }
+        saveDB();
+        renderStudentsSetup();
+      }
+    });
+  });
+
+
+  container.querySelectorAll('.student-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (confirm('Delete this student? Historical attendance will remain intact.')) {
+        DB.students = DB.students.filter(s => s.roll !== parseInt(btn.dataset.roll));
+        saveDB();
+        renderStudentsSetup();
+      }
+    });
+  });
+}
+
+
+// ============================================================
+// SETUP — SETTINGS & DATA MANAGEMENT
+// ============================================================
+function renderSettingsSetup() {
+  const container = document.getElementById('setup-settings');
+  container.innerHTML = `
+    <div class="card">
+      <div class="card-title"><span>Settings</span></div>
+      <div class="form-field" style="margin-bottom:12px">
+        <label>Class Name</label>
+        <input type="text" id="settings-class-name" value="${DB.settings.className}">
+      </div>
+      <div class="form-field" style="margin-bottom:12px">
+        <label>Default Attendance View</label>
+        <select id="settings-default-view">
+          <option value="list" ${DB.settings.defaultView==='list'?'selected':''}>List View</option>
+          <option value="grid" ${DB.settings.defaultView==='grid'?'selected':''}>Grid View</option>
+        </select>
+      </div>
+      <button class="btn-sm btn-primary" id="settings-save" style="width:100%;padding:12px;justify-content:center">Save Settings</button>
+    </div>
+    <div class="card">
+      <div class="card-title"><span>Data Management & Backup</span></div>
+      <button class="btn-sm btn-secondary" id="export-excel" style="width:100%;padding:12px;margin-bottom:8px;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export to Excel (CSV)
+      </button>
+      <button class="btn-sm btn-secondary" id="export-json" style="width:100%;padding:12px;margin-bottom:8px;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export Backup (JSON)
+      </button>
+      <button class="btn-sm btn-secondary" id="import-json" style="width:100%;padding:12px;margin-bottom:8px;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import Backup (JSON)
+      </button>
+      <button class="btn-sm btn-secondary" id="recycle-bin" style="width:100%;padding:12px;margin-bottom:8px;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Recycle Bin (${DB.recycleBin.length})
+      </button>
+      <button class="btn-sm btn-danger" id="reset-all" style="width:100%;padding:12px;justify-content:center;gap:8px">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+        Reset Everything
+      </button>
+    </div>
+  `;
+
+
+  document.getElementById('settings-save').addEventListener('click', () => {
+    DB.settings.className = document.getElementById('settings-class-name').value;
+    DB.settings.defaultView = document.getElementById('settings-default-view').value;
+    saveDB();
+    showToast('✓ Settings saved', 'success');
+  });
+
+
+  document.getElementById('export-excel').addEventListener('click', exportToExcel);
+  document.getElementById('export-json').addEventListener('click', exportJSON);
+  document.getElementById('import-json').addEventListener('click', importJSON);
+  document.getElementById('recycle-bin').addEventListener('click', showRecycleBin);
+
+
+  document.getElementById('reset-all').addEventListener('click', () => {
+    if (confirm('Reset EVERYTHING to defaults? This will delete all data permanently.')) {
+      localStorage.removeItem(STORAGE_KEY);
+      seedData();
+      showToast('✓ Reset complete', 'success');
+      renderSetup();
+    }
+  });
+}
+
+
+function exportToExcel() {
+  let csv = "Date,Time,Subject,Teachers,Type,Batch,Topic,Remarks,Present Count,Absent Count,Present Rolls,Absent Rolls\n";
+  getAllAttendanceRecords().forEach(r => {
+    const students = getStudentsForBatch(r.batch);
+    const absentRolls = students.filter(s => !r.present.includes(s.roll)).map(s => s.roll);
+    const escapeCsv = (str) => `"${String(str || '').replace(/"/g, '""')}"`;
+    csv += [
+      escapeCsv(r.date), escapeCsv(r.time), escapeCsv(r.subjectName), escapeCsv(getTeachersFromRecord(r).join(', ')),
+      escapeCsv(r.type), escapeCsv(r.batch), escapeCsv(r.topic), escapeCsv(r.remarks),
+      r.present.length, absentRolls.length,
+      escapeCsv(r.present.join(', ')), escapeCsv(absentRolls.join(', '))
+    ].join(',') + "\n";
+  });
+  
+  const blob = new Blob(["\uFEFF" + csv], {type: 'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'attendance_report_' + formatDateISO(new Date()) + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Excel CSV exported', 'success');
+}
+
+
+function exportJSON() {
+  const data = JSON.stringify(DB, null, 2);
+  const blob = new Blob([data], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'cr_attendance_backup_' + formatDateISO(new Date()) + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('✓ Backup exported', 'success');
+}
+
+
+function importJSON() {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = '.json';
+  input.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (data.students && data.subjects) {
+          DB = data;
+          if (!DB.recycleBin) DB.recycleBin = [];
+          saveDB();
+          showToast('✓ Backup imported', 'success');
+          renderSetup();
+        } else {
+          showToast('Invalid file format', 'error');
+        }
+      } catch(err) {
+        showToast('Import failed', 'error');
+      }
+    };
+    reader.readAsText(file);
+  });
+  input.click();
+}
+
+
+function showRecycleBin() {
+  const modal = document.getElementById('modal-content');
+  modal.innerHTML = `
+    <div class="modal-header">
+      <h2>♻️ Recycle Bin</h2>
+      <button class="modal-close" id="modal-close-btn">✕</button>
+    </div>
+    ${DB.recycleBin.length === 0 ? '<div class="empty-state"><div class="es-icon">🗑️</div><div class="es-msg">Recycle Bin is empty</div></div>' : 
+      DB.recycleBin.map(r => `
+        <div class="setup-item">
+          <div class="si-info">
+            <div class="si-title">${r.subjectName} - ${r.time}</div>
+            <div class="si-sub">Date: ${r.date.split('-').reverse().join('/')} | Batch: ${r.batch}</div>
+          </div>
+          <div class="si-actions">
+            <button class="recycle-restore" data-id="${r.id}" style="color: var(--green); font-weight:700">Restore</button>
+            <button class="recycle-delete" data-id="${r.id}" style="color: var(--red); font-weight:700">Delete</button>
+          </div>
+        </div>
+      `).join('')
+    }
+  `;
+  document.getElementById('modal-overlay').classList.add('active');
+  
+  modal.querySelectorAll('.recycle-restore').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const idx = DB.recycleBin.findIndex(r => r.id === id);
+      if (idx > -1) {
+        const [restored] = DB.recycleBin.splice(idx, 1);
+        if (!DB.attendance[restored.date]) DB.attendance[restored.date] = [];
+        restored.modifiedAt = Date.now();
+        restored.history.push({ ts: Date.now(), action: 'Restored from Recycle Bin' });
+        DB.attendance[restored.date].push(restored);
+        saveDB();
+        showToast('✓ Record restored', 'success');
+        showRecycleBin();
+      }
+    });
+  });
+  
+  modal.querySelectorAll('.recycle-delete').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      DB.recycleBin = DB.recycleBin.filter(r => r.id !== id);
+      saveDB();
+      showToast('Permanently deleted', 'success');
+      showRecycleBin();
+      renderSettingsSetup();
+    });
+  });
+  
+  document.getElementById('modal-close-btn').addEventListener('click', closeModal);
+}
+
+
+// ============================================================
+// PDF EXPORT (Print-based)
+// ============================================================
+function exportPDF() {
+  const stats = computeStats();
+  const printArea = document.getElementById('print-area');
+
+
+  const studentRows = [...DB.students].sort((a,b) => a.roll - b.roll).map(s => {
+    const st = stats.studentStats[s.roll] || {present:0, total:0, percentage:0};
+    return `<tr>
+      <td>${s.roll}</td><td>${s.name}</td><td>${s.batch || 'None'}</td>
+      <td>${st.present}</td><td>${st.total - st.present}</td><td>${st.total}</td>
+      <td style="font-weight:bold;color:${st.percentage>=75?'#16a34a':'#dc2626'}">${st.percentage.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+
+
+  const subjectRows = DB.subjects.map(sub => {
+    const st = stats.subjectStats[sub.id] || {present:0, total:0, percentage:0, count:0};
+    return `<tr>
+      <td>${sub.name}</td><td>${st.count}</td><td>${st.present}</td><td>${st.total}</td>
+      <td>${st.percentage.toFixed(1)}%</td>
+    </tr>`;
+  }).join('');
+
+
+  const recentRecords = stats.allRecords.slice(-20).reverse();
+  const historyRows = recentRecords.map(r => {
+    const students = getStudentsForBatch(r.batch);
+    const absentCount = students.length - r.present.length;
+    return `<tr>
+      <td>${r.date.split('-').reverse().join('/')}</td>
+      <td>${r.subjectName}</td><td>${getTeachersFromRecord(r).join(', ')}</td><td>${r.type}</td>
+      <td>${r.batch}</td><td>${r.present.length}</td><td>${absentCount}</td>
+      <td>${r.time}</td><td>${r.topic || ''}</td>
+    </tr>`;
+  }).join('');
+
+
+  printArea.innerHTML = `
+    <div class="print-page">
+      <div class="print-h1">${DB.settings.className} — Attendance Report</div>
+      <div style="font-size:12px;color:#666;margin-bottom:16px">Generated: ${formatDate(new Date())} | Total Lectures: ${stats.totalRecords} | Class Average: ${stats.classAvg.toFixed(1)}%</div>
+
+
+      <div class="print-h2">Page 1: Student Summary</div>
+      <table class="print-table">
+        <thead><tr><th>Roll</th><th>Name</th><th>Batch</th><th>Present</th><th>Absent</th><th>Total</th><th>%</th></tr></thead>
+        <tbody>${studentRows}</tbody>
+      </table>
+    </div>
+
+
+    <div class="print-page">
+      <div class="print-h2">Page 2: Subject Analysis</div>
+      <table class="print-table">
+        <thead><tr><th>Subject</th><th>Lectures</th><th>Present</th><th>Total</th><th>Attendance</th></tr></thead>
+        <tbody>${subjectRows}</tbody>
+      </table>
+      <div class="print-h2" style="margin-top:20px">Batch Comparison</div>
+      <table class="print-table">
+        <thead><tr><th>Batch</th><th>Present</th><th>Total</th><th>%</th></tr></thead>
+        <tbody>
+          <tr><td>Batch A</td><td>${stats.batchStats.A?.present||0}</td><td>${stats.batchStats.A?.total||0}</td><td>${(stats.batchStats.A?.percentage||0).toFixed(1)}%</td></tr>
+          <tr><td>Batch B</td><td>${stats.batchStats.B?.present||0}</td><td>${stats.batchStats.B?.total||0}</td><td>${(stats.batchStats.B?.percentage||0).toFixed(1)}%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+
+    <div class="print-page">
+      <div class="print-h2">Page 3: Visual Summary</div>
+      <div class="print-h2">Subject-wise Attendance</div>
+      ${DB.subjects.map(sub => {
+        const st = stats.subjectStats[sub.id] || {percentage:0, count:0};
+        return `<div style="margin:4px 0;font-size:12px">
+          <span style="display:inline-block;width:120px">${sub.name}</span>
+          <div class="print-bar" style="width:${st.percentage*2}px;background:${st.percentage>=75?'#16a34a':'#dc2626'};height:12px"></div>
+          <span style="margin-left:4px">${st.percentage.toFixed(1)}%</span>
+        </div>`;
+      }).join('')}
+      <div class="print-h2" style="margin-top:20px">Attendance Distribution</div>
+      <div style="font-size:12px">
+        <p>Above 75%: ${Object.values(stats.studentStats).filter(s=>s.percentage>=75).length} students</p>
+        <p>50%-75%: ${Object.values(stats.studentStats).filter(s=>s.percentage>=50&&s.percentage<75).length} students</p>
+        <p>Below 50%: ${Object.values(stats.studentStats).filter(s=>s.percentage<50&&s.percentage>0).length} students</p>
+      </div>
+    </div>
+
+
+    <div class="print-page">
+      <div class="print-h2">Page 4: Recent Attendance History</div>
+      <table class="print-table">
+        <thead><tr><th>Date</th><th>Subject</th><th>Teachers</th><th>Type</th><th>Batch</th><th>Present</th><th>Absent</th><th>Time</th><th>Topic</th></tr></thead>
+        <tbody>${historyRows}</tbody>
+      </table>
+    </div>
+  `;
+
+
+  window.print();
+}
+
+
+// ============================================================
+// TOPIC AUTOCOMPLETE
+// ============================================================
+function setupTopicAutocomplete() {
+  const input = document.getElementById('att-topic');
+  const suggestions = document.getElementById('topic-suggestions');
+
+
+  input.addEventListener('input', debounce(() => {
+    const query = input.value.toLowerCase().trim();
+    if (!query) {
+      suggestions.style.display = 'none';
+      return;
+    }
+    const matches = DB.topics.filter(t => t.toLowerCase().includes(query)).slice(0, 5);
+    if (matches.length > 0) {
+      suggestions.innerHTML = matches.map(t =>
+        `<div class="sug" data-topic="${t}">${t}</div>`
+      ).join('');
+      suggestions.style.display = 'block';
+    } else {
+      suggestions.style.display = 'none';
+    }
+  }, 200));
+
+
+  input.addEventListener('blur', () => {
+    setTimeout(() => { suggestions.style.display = 'none'; }, 200);
+  });
+
+
+  suggestions.addEventListener('click', (e) => {
+    if (e.target.classList.contains('sug')) {
+      input.value = e.target.dataset.topic;
+      AppState.attendance.topic = e.target.dataset.topic;
+      suggestions.style.display = 'none';
+      saveCurrentAttendance(true);
+    }
+  });
+
+
+  input.addEventListener('input', () => {
+    AppState.attendance.topic = input.value;
+    silentSave();
+  });
+}
+
+
+// ============================================================
+// EVENT LISTENERS
+// ============================================================
+function setupEventListeners() {
+  document.querySelectorAll('.nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => navigate(btn.dataset.nav));
+  });
+
+
+  document.getElementById('theme-toggle').addEventListener('click', () => {
+    const current = document.documentElement.dataset.theme;
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.dataset.theme = next;
+    DB.settings.theme = next;
+    saveDB(true);
+    document.getElementById('theme-icon').innerHTML = next === 'dark' ? 
+      '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>' : 
+      '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+    document.querySelector('meta[name="theme-color"]').setAttribute('content', next === 'dark' ? '#0f172a' : '#4f46e5');
+  });
+
+
+  document.getElementById('att-date').addEventListener('change', (e) => {
+    saveCurrentAttendance(true); 
+    AppState.attendance.date = e.target.value;
+    AppState.attendance.recordId = null;
+    clearAttendanceForm();
+    renderExistingRecords();
+  });
+
+
+  document.getElementById('new-record-btn').addEventListener('click', () => {
+    clearAttendanceForm();
+    showToast('Ready for new record', 'success');
+  });
+
+
+  document.getElementById('att-subject').addEventListener('change', (e) => {
+    AppState.attendance.subjectId = e.target.value;
+    AppState.attendance.subjectName = getSubjectName(e.target.value);
+    const teachers = getTeachersForSubject(e.target.value);
+    
+    const hasOverlap = AppState.attendance.teachers.some(t => teachers.includes(t));
+    if (!hasOverlap && teachers.length > 0) {
+      AppState.attendance.teachers = [teachers[0]];
+    } else if (!hasOverlap && teachers.length === 0) {
+      AppState.attendance.teachers = [];
+    }
+    
+    renderTeacherChips();
+    saveCurrentAttendance(true);
+  });
+
+
+  document.getElementById('att-batch').addEventListener('change', (e) => {
+    AppState.attendance.batch = e.target.value;
+    const validRolls = getStudentsForBatch(e.target.value).map(s => s.roll);
+    AppState.attendance.present = AppState.attendance.present.filter(r => validRolls.includes(r));
+    renderStudents();
+    updateCounts();
+    saveCurrentAttendance(true);
+  });
+
+
+  document.getElementById('att-type').addEventListener('change', (e) => {
+    AppState.attendance.type = e.target.value;
+    saveCurrentAttendance(true);
+  });
+
+
+  document.getElementById('att-time').addEventListener('input', (e) => {
+    AppState.attendance.time = e.target.value;
+    saveCurrentAttendance(true);
+  });
+
+
+  document.getElementById('att-remarks').addEventListener('input', (e) => {
+    AppState.attendance.remarks = e.target.value;
+    silentSave();
+  });
+
+
+  document.querySelectorAll('.mode-toggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const mode = btn.dataset.mode;
+      if (mode === AppState.attendance.mode) return;
+      AppState.attendance.mode = mode;
+      document.querySelectorAll('.mode-toggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderStudents();
+    });
+  });
+
+
+  const container = document.getElementById('student-container');
+  container.addEventListener('click', (e) => {
+    const item = e.target.closest('.att-item');
+    if (item && container.contains(item)) {
+      togglePresent(item.dataset.roll);
+    }
+  });
+
+
+  const searchInput = document.getElementById('att-search');
+  searchInput.addEventListener('input', debounce(() => {
+    const query = searchInput.value.toLowerCase().trim();
+    container.querySelectorAll('.att-item').forEach(item => {
+      const searchData = item.dataset.search;
+      if (!query || searchData.includes(query)) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }, 150));
+
+
+  document.getElementById('mark-all-btn').addEventListener('click', markAllPresent);
+  document.getElementById('reset-btn').addEventListener('click', resetAttendance);
+  document.getElementById('copy-btn').addEventListener('click', showCopyModal);
+  document.getElementById('delete-record-btn').addEventListener('click', deleteCurrentRecord);
+
+
+  document.querySelectorAll('.report-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.report-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.report-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('report-' + tab.dataset.report).classList.add('active');
+    });
+  });
+
+
+  document.querySelectorAll('.setup-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.setup-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      document.querySelectorAll('.setup-panel').forEach(p => p.classList.remove('active'));
+      document.getElementById('setup-' + tab.dataset.setup).classList.add('active');
+      AppState.setupTab = tab.dataset.setup;
+      renderSetup();
+    });
+  });
+
+
+  document.getElementById('export-pdf-btn').addEventListener('click', exportPDF);
+
+
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modal-overlay')) closeModal();
+  });
+
+
+  setupTopicAutocomplete();
+}
+
+
+// ============================================================
+// APP INITIALIZATION
+// ============================================================
+function init() {
+  loadDB();
+
+
+  document.documentElement.dataset.theme = DB.settings.theme;
+  document.getElementById('theme-icon').innerHTML = DB.settings.theme === 'dark' ? 
+    '<circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>' : 
+    '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>';
+  document.querySelector('meta[name="theme-color"]').setAttribute('content', DB.settings.theme === 'dark' ? '#0f172a' : '#4f46e5');
+
+
+  AppState.attendance.mode = DB.settings.defaultView || 'list';
+
+
+  const now = new Date();
+  AppState.currentDate = now;
+  AppState.attendance.date = formatDateISO(now);
+
+
+  setupEventListeners();
+  renderHome();
+
+
+  if (!sessionStorage.getItem('welcome_shown')) {
+    setTimeout(() => showToast('Welcome! Add students and start taking attendance.', 'success'), 500);
+    sessionStorage.setItem('welcome_shown', '1');
+  }
+
+
+  setInterval(() => {
+    if (AppState.currentView === 'home') {
+      const now = new Date();
+      if (now.getMinutes() === 0 || now.getMinutes() === 30) {
+        AppState.currentDate = now;
+        renderHome();
+      }
+    }
+  }, 60000);
+}
+
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+</script>
+</body>
+</html>
